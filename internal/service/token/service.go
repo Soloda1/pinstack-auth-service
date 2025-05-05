@@ -27,7 +27,7 @@ func (s *TokenService) Login(ctx context.Context, login, password string) (*auth
 	return nil, nil
 }
 
-func (s *TokenService) Register(ctx context.Context, user *model.UserDTO) (*auth.TokenPair, error) {
+func (s *TokenService) Register(ctx context.Context, user *model.User) (*auth.TokenPair, error) {
 	return nil, nil
 }
 
