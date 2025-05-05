@@ -1,21 +1,16 @@
 package auth
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
+	"pinstack-auth-service/internal/custom_errors"
 	"time"
 
 	"pinstack-auth-service/internal/logger"
 
 	"github.com/golang-jwt/jwt/v5"
-)
-
-var (
-	ErrInvalidToken = errors.New("invalid token")
-	ErrExpiredToken = errors.New("token has expired")
+	"github.com/google/uuid"
 )
 
 type TokenPair struct {
@@ -118,25 +113,21 @@ func (m *TokenManager) ParseRefreshToken(tokenString string) (*TokenClaims, erro
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			m.logger.Debug("refresh token expired", slog.String("token", tokenString))
-			return nil, ErrExpiredToken
+			return nil, custom_errors.ErrExpiredToken
 		}
 		m.logger.Error("failed to parse refresh token", slog.String("error", err.Error()))
-		return nil, ErrInvalidToken
+		return nil, custom_errors.ErrInvalidToken
 	}
 
 	claims, ok := token.Claims.(*TokenClaims)
 	if !ok {
 		m.logger.Error("invalid token claims")
-		return nil, ErrInvalidToken
+		return nil, custom_errors.ErrInvalidToken
 	}
 
 	return claims, nil
 }
 
 func generateJTI() (string, error) {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	return uuid.New().String(), nil
 }
