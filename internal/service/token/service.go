@@ -38,3 +38,7 @@ func (s *TokenService) Refresh(ctx context.Context, refreshToken string) (*auth.
 func (s *TokenService) Logout(ctx context.Context, refreshToken string) error {
 	return nil
 }
+
+func (s *TokenService) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+	return nil
+}
