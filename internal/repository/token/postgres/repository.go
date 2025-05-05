@@ -3,12 +3,15 @@ package auth_repository
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5"
 	"log/slog"
+	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
-	"pinstack-auth-service/internal/repository/token"
+	auth_repository "pinstack-auth-service/internal/repository/token"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Repository struct {
@@ -33,8 +36,21 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Q
 
 	_, err := q.Exec(ctx, query, args)
 	if err != nil {
-		r.log.Error("Error creating refresh token", slog.String("error", err.Error()))
-		return err
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case "23505": // unique_violation
+				r.log.Error("Refresh token already exists",
+					slog.String("error", err.Error()),
+					slog.String("jti", token.JTI))
+				return custom_errors.ErrOperationNotAllowed
+			}
+		}
+		r.log.Error("Failed to create refresh token",
+			slog.String("error", err.Error()),
+			slog.String("jti", token.JTI),
+			slog.Int64("user_id", token.UserID))
+		return custom_errors.ErrDatabaseQuery
 	}
 
 	return nil
@@ -60,10 +76,20 @@ func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Quer
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			r.log.Debug("Refresh token not found", slog.String("token", token))
+			return nil, custom_errors.ErrInvalidToken
 		}
-		r.log.Error("Error getting refresh token", slog.String("error", err.Error()))
-		return nil, err
+		r.log.Error("Failed to get refresh token",
+			slog.String("error", err.Error()),
+			slog.String("token", token))
+		return nil, custom_errors.ErrDatabaseQuery
+	}
+
+	if time.Now().After(refreshToken.ExpiresAt) {
+		r.log.Debug("Refresh token expired",
+			slog.String("token", token),
+			slog.Time("expires_at", refreshToken.ExpiresAt))
+		return nil, custom_errors.ErrExpiredToken
 	}
 
 	return &refreshToken, nil
@@ -89,10 +115,20 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
+			r.log.Debug("Refresh token not found by JTI", slog.String("jti", jti))
+			return nil, custom_errors.ErrInvalidToken
 		}
-		r.log.Error("Error getting refresh token by JTI", slog.String("error", err.Error()))
-		return nil, err
+		r.log.Error("Failed to get refresh token by JTI",
+			slog.String("error", err.Error()),
+			slog.String("jti", jti))
+		return nil, custom_errors.ErrDatabaseQuery
+	}
+
+	if time.Now().After(refreshToken.ExpiresAt) {
+		r.log.Debug("Refresh token expired",
+			slog.String("jti", jti),
+			slog.Time("expires_at", refreshToken.ExpiresAt))
+		return nil, custom_errors.ErrExpiredToken
 	}
 
 	return &refreshToken, nil
@@ -104,11 +140,19 @@ func (r *Repository) DeleteRefreshToken(ctx context.Context, q auth_repository.Q
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE token = @token`
-	_, err := q.Exec(ctx, query, args)
+	result, err := q.Exec(ctx, query, args)
 	if err != nil {
-		r.log.Error("Error deleting refresh token", slog.String("error", err.Error()))
-		return err
+		r.log.Error("Failed to delete refresh token",
+			slog.String("error", err.Error()),
+			slog.String("token", token))
+		return custom_errors.ErrDatabaseQuery
 	}
+
+	if result.RowsAffected() == 0 {
+		r.log.Debug("No refresh token found to delete", slog.String("token", token))
+		return custom_errors.ErrInvalidToken
+	}
+
 	return nil
 }
 
@@ -118,11 +162,19 @@ func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_reposit
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE jti = @jti`
-	_, err := q.Exec(ctx, query, args)
+	result, err := q.Exec(ctx, query, args)
 	if err != nil {
-		r.log.Error("Error deleting refresh token by JTI", slog.String("error", err.Error()))
-		return err
+		r.log.Error("Failed to delete refresh token by JTI",
+			slog.String("error", err.Error()),
+			slog.String("jti", jti))
+		return custom_errors.ErrDatabaseQuery
 	}
+
+	if result.RowsAffected() == 0 {
+		r.log.Debug("No refresh token found to delete by JTI", slog.String("jti", jti))
+		return custom_errors.ErrInvalidToken
+	}
+
 	return nil
 }
 
@@ -134,9 +186,12 @@ func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, q auth_reposit
 	query := `DELETE FROM refresh_tokens WHERE user_id = @user_id`
 	_, err := q.Exec(ctx, query, args)
 	if err != nil {
-		r.log.Error("Error deleting user refresh tokens", slog.String("error", err.Error()))
-		return err
+		r.log.Error("Failed to delete user refresh tokens",
+			slog.String("error", err.Error()),
+			slog.Int64("user_id", userID))
+		return custom_errors.ErrDatabaseQuery
 	}
+
 	return nil
 }
 
@@ -148,8 +203,11 @@ func (r *Repository) DeleteExpiredTokens(ctx context.Context, q auth_repository.
 	query := `DELETE FROM refresh_tokens WHERE expires_at < @before`
 	_, err := q.Exec(ctx, query, args)
 	if err != nil {
-		r.log.Error("Error deleting expired tokens", slog.String("error", err.Error()))
-		return err
+		r.log.Error("Failed to delete expired tokens",
+			slog.String("error", err.Error()),
+			slog.Time("before", before))
+		return custom_errors.ErrDatabaseQuery
 	}
+
 	return nil
 }
