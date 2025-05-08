@@ -24,7 +24,7 @@ type TokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-type TokenManager struct {
+type Manager struct {
 	accessSecretKey  []byte
 	refreshSecretKey []byte
 	accessTTL        time.Duration
@@ -32,8 +32,8 @@ type TokenManager struct {
 	logger           *logger.Logger
 }
 
-func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refreshTTL time.Duration, logger *logger.Logger) *TokenManager {
-	return &TokenManager{
+func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refreshTTL time.Duration, logger *logger.Logger) *Manager {
+	return &Manager{
 		accessSecretKey:  []byte(accessSecretKey),
 		refreshSecretKey: []byte(refreshSecretKey),
 		accessTTL:        accessTTL,
@@ -42,7 +42,7 @@ func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refres
 	}
 }
 
-func (m *TokenManager) NewJWT(userID int64) (*TokenPair, error) {
+func (m *Manager) NewJWT(userID int64) (*TokenPair, error) {
 	m.logger.Debug("generating new JWT pair", slog.Int64("user_id", userID))
 
 	jti, err := generateJTI()
@@ -74,7 +74,7 @@ func (m *TokenManager) NewJWT(userID int64) (*TokenPair, error) {
 	}, nil
 }
 
-func (m *TokenManager) createAccessToken(userID int64) (string, error) {
+func (m *Manager) createAccessToken(userID int64) (string, error) {
 	claims := TokenClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -87,7 +87,7 @@ func (m *TokenManager) createAccessToken(userID int64) (string, error) {
 	return token.SignedString(m.accessSecretKey)
 }
 
-func (m *TokenManager) createRefreshToken(userID int64, jti string) (string, error) {
+func (m *Manager) createRefreshToken(userID int64, jti string) (string, error) {
 	claims := TokenClaims{
 		UserID: userID,
 		JTI:    jti,
@@ -101,7 +101,7 @@ func (m *TokenManager) createRefreshToken(userID int64, jti string) (string, err
 	return token.SignedString(m.refreshSecretKey)
 }
 
-func (m *TokenManager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
+func (m *Manager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			m.logger.Warn("unexpected signing method", slog.String("alg", fmt.Sprintf("%v", token.Header["alg"])))

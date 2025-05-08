@@ -10,4 +10,5 @@ type UserClient interface {
 	CreateUser(ctx context.Context, user *model.User) (*model.User, error)
 	GetUserByUsername(ctx context.Context, username string) (*model.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
+	UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error
 }

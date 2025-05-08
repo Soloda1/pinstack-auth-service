@@ -2,14 +2,15 @@ package user_client
 
 import (
 	"context"
-	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/user/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"log/slog"
 	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
+
+	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/user/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type userClient struct {
@@ -105,4 +106,27 @@ func (u userClient) GetUserByEmail(ctx context.Context, email string) (*model.Us
 	}
 	u.log.Info("Successfully got user by email", slog.String("email", email))
 	return model.UserFromProto(resp), nil
+}
+
+func (u userClient) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+	u.log.Info("Updating user password", slog.Int64("id", id))
+	_, err := u.client.UpdatePassword(ctx, &pb.UpdatePasswordRequest{
+		Id:          id,
+		OldPassword: oldPassword,
+		NewPassword: newPassword,
+	})
+	if err != nil {
+		u.log.Error("Failed to update password", slog.String("error", err.Error()), slog.Int64("id", id))
+		if st, ok := status.FromError(err); ok {
+			switch st.Code() {
+			case codes.NotFound:
+				return custom_errors.ErrUserNotFound
+			case codes.InvalidArgument:
+				return custom_errors.ErrInvalidPassword
+			}
+		}
+		return custom_errors.ErrExternalServiceError
+	}
+	u.log.Info("Successfully updated password", slog.Int64("id", id))
+	return nil
 }

@@ -75,6 +75,11 @@ var (
 	ErrInvalidSearchQuery = errors.New("invalid search query")
 )
 
+// Ошибки внутренних сервисов
+var (
+	ErrInternalServiceError = errors.New("internal service error")
+)
+
 // Ошибки аватара
 var (
 	ErrInvalidAvatarFormat = errors.New("invalid avatar format")
