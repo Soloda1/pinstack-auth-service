@@ -18,7 +18,7 @@ type Repository struct {
 	log *logger.Logger
 }
 
-func NewUserRepository(log *logger.Logger) *Repository {
+func NewTokenRepository(log *logger.Logger) *Repository {
 	return &Repository{log}
 }
 

@@ -16,3 +16,7 @@ jwt:
   secret: "my-secret"
   access_expires_at: "1m"
   refresh_expires_at: "5m"
+
+user_service:
+  address: "user-service"
+  port: 50051

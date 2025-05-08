@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Env        string
-	GRPCServer GRPCServer
-	Database   Database
-	JWT        JWT
+	Env         string
+	GRPCServer  GRPCServer
+	Database    Database
+	JWT         JWT
+	UserService UserService
 }
 
 type GRPCServer struct {
@@ -35,6 +36,11 @@ type JWT struct {
 	RefreshExpiresAt time.Duration
 }
 
+type UserService struct {
+	Address string
+	Port    int
+}
+
 func MustLoad() *Config {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -55,6 +61,9 @@ func MustLoad() *Config {
 	viper.SetDefault("jwt.secret", "my-secret")
 	viper.SetDefault("jwt.access_expires_at", "1m")
 	viper.SetDefault("jwt.refresh_expires_at", "5m")
+
+	viper.SetDefault("user_service.address", "user-service")
+	viper.SetDefault("user_service.port", 50051)
 
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Error reading config file: %s", err)
@@ -79,6 +88,10 @@ func MustLoad() *Config {
 			Secret:           viper.GetString("jwt.secret"),
 			AccessExpiresAt:  viper.GetDuration("jwt.access_expires_at"),
 			RefreshExpiresAt: viper.GetDuration("jwt.refresh_expires_at"),
+		},
+		UserService: UserService{
+			Address: viper.GetString("user_service.address"),
+			Port:    viper.GetInt("user_service.port"),
 		},
 	}
 
