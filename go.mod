@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/jackc/pgx/v5 v5.5.4
-	github.com/soloda1/pinstack-proto-definitions v0.1.8
+	github.com/soloda1/pinstack-proto-definitions v0.1.9
 	github.com/spf13/viper v1.20.1
 	golang.org/x/crypto v0.36.0
 	google.golang.org/grpc v1.72.0

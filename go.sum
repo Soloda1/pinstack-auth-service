@@ -123,6 +123,8 @@ github.com/sagikazarmark/locafero v0.7.0/go.mod h1:2za3Cg5rMaTMoG/2Ulr9AwtFaIppK
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/soloda1/pinstack-proto-definitions v0.1.8 h1:s1PflBlcfNzJBL5vRnNRNFObcnYRVJRJvxZqXWawoR8=
 github.com/soloda1/pinstack-proto-definitions v0.1.8/go.mod h1:Jl7Cv/0eQDLtxI5HdRANm6HYbSjX1x97Za4XRUySwrM=
+github.com/soloda1/pinstack-proto-definitions v0.1.9 h1:KRZHFlTRYnWvBHCq54rP46TZYL+z32fhPEHYoOLhbcc=
+github.com/soloda1/pinstack-proto-definitions v0.1.9/go.mod h1:Jl7Cv/0eQDLtxI5HdRANm6HYbSjX1x97Za4XRUySwrM=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spf13/afero v1.12.0 h1:UcOPyRBYczmFn6yvphxkn9ZEOY65cpwGKb5mL36mrqs=

@@ -23,6 +23,7 @@ func UserFromProto(u *pb.User) *User {
 		ID:        u.Id,
 		Username:  u.Username,
 		Email:     u.Email,
+		Password:  u.Password,
 		FullName:  u.FullName,
 		Bio:       u.Bio,
 		AvatarURL: u.AvatarUrl,
