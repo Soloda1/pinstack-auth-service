@@ -305,13 +305,19 @@ func (s *TokenService) UpdatePassword(ctx context.Context, id int64, oldPassword
 		return custom_errors.ErrInvalidPassword
 	}
 
-	hashedPassword, err := utils.HashPassword(newPassword)
+	hashedNewPassword, err := utils.HashPassword(newPassword)
 	if err != nil {
-		s.log.Error("Failed to hash password", slog.String("error", err.Error()), slog.Int64("userID", id))
+		s.log.Error("Failed to hash new password", slog.String("error", err.Error()), slog.Int64("userID", id))
 		return custom_errors.ErrInternalServiceError
 	}
 
-	err = s.userClient.UpdatePassword(ctx, id, user.Password, hashedPassword)
+	hashedOldPassword, err := utils.HashPassword(oldPassword)
+	if err != nil {
+		s.log.Error("Failed to hash old password", slog.Int64("userID", id))
+		return custom_errors.ErrInternalServiceError
+	}
+
+	err = s.userClient.UpdatePassword(ctx, id, hashedOldPassword, hashedNewPassword)
 	if err != nil {
 		s.log.Error("Failed to update password", slog.String("error", err.Error()), slog.Int64("userID", id))
 		switch {
