@@ -179,11 +179,10 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error) {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
-		s.log.Error("Failed to parse refresh token", slog.String("error", err.Error()))
-		if errors.Is(err, custom_errors.ErrExpiredToken) {
-			return nil, custom_errors.ErrExpiredToken
+		if errors.Is(err, custom_errors.ErrInvalidToken) || errors.Is(err, custom_errors.ErrExpiredToken) {
+			return nil, err
 		}
-		return nil, custom_errors.ErrInvalidToken
+		return nil, err
 	}
 
 	_, err = s.repo.GetRefreshTokenByJTI(ctx, claims.JTI)
@@ -194,6 +193,9 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 		}
 		if errors.Is(err, custom_errors.ErrInvalidToken) {
 			return nil, custom_errors.ErrInvalidToken
+		}
+		if errors.Is(err, custom_errors.ErrOperationNotAllowed) {
+			return nil, custom_errors.ErrOperationNotAllowed
 		}
 		return nil, custom_errors.ErrInternalServiceError
 	}
@@ -331,6 +333,9 @@ func (s *Service) UpdatePassword(ctx context.Context, id int64, oldPassword, new
 	err = s.repo.DeleteUserRefreshTokens(ctx, id)
 	if err != nil {
 		s.log.Error("Failed to delete refresh tokens", slog.String("error", err.Error()), slog.Int64("userID", id))
+		if errors.Is(err, custom_errors.ErrOperationNotAllowed) {
+			return custom_errors.ErrOperationNotAllowed
+		}
 		return custom_errors.ErrInternalServiceError
 	}
 
