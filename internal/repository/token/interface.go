@@ -10,6 +10,7 @@ import (
 	"pinstack-auth-service/internal/model"
 )
 
+//go:generate mockery --name TokenRepository --dir . --output ../../../mocks --outpkg mocks --with-expecter
 type TokenRepository interface {
 	CreateRefreshToken(ctx context.Context, q Querier, token *model.RefreshToken) error
 	GetRefreshToken(ctx context.Context, q Querier, token string) (*model.RefreshToken, error)

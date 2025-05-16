@@ -18,7 +18,7 @@ import (
 
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
-type TokenService struct {
+type Service struct {
 	db           *pgxpool.Pool
 	repo         auth_repository.TokenRepository
 	userClient   user_client.UserClient
@@ -26,8 +26,8 @@ type TokenService struct {
 	log          *logger.Logger
 }
 
-func NewService(db *pgxpool.Pool, repo auth_repository.TokenRepository, tokenManager auth.TokenManager, userClient user_client.UserClient, log *logger.Logger) *TokenService {
-	return &TokenService{
+func NewService(db *pgxpool.Pool, repo auth_repository.TokenRepository, tokenManager auth.TokenManager, userClient user_client.UserClient, log *logger.Logger) *Service {
+	return &Service{
 		db:           db,
 		repo:         repo,
 		log:          log,
@@ -36,7 +36,7 @@ func NewService(db *pgxpool.Pool, repo auth_repository.TokenRepository, tokenMan
 	}
 }
 
-func (s *TokenService) Login(ctx context.Context, login, password string) (*auth.TokenPair, error) {
+func (s *Service) Login(ctx context.Context, login, password string) (*auth.TokenPair, error) {
 	isEmail := emailRegex.MatchString(login)
 	var user *model.User
 	var err error
@@ -105,7 +105,7 @@ func (s *TokenService) Login(ctx context.Context, login, password string) (*auth
 	return tokens, nil
 }
 
-func (s *TokenService) Register(ctx context.Context, user *model.User) (*auth.TokenPair, error) {
+func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPair, error) {
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		s.log.Debug("Invalid input data", slog.String("username", user.Username), slog.String("email", user.Email))
 		return nil, custom_errors.ErrInvalidInput
@@ -180,7 +180,7 @@ func (s *TokenService) Register(ctx context.Context, user *model.User) (*auth.To
 	return tokens, nil
 }
 
-func (s *TokenService) Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error) {
+func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error) {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		s.log.Error("Failed to parse refresh token", slog.String("error", err.Error()))
@@ -257,7 +257,7 @@ func (s *TokenService) Refresh(ctx context.Context, refreshToken string) (*auth.
 	return tokens, nil
 }
 
-func (s *TokenService) Logout(ctx context.Context, refreshToken string) error {
+func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		s.log.Error("Failed to parse refresh token", slog.String("error", err.Error()))
@@ -281,7 +281,7 @@ func (s *TokenService) Logout(ctx context.Context, refreshToken string) error {
 	return nil
 }
 
-func (s *TokenService) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+func (s *Service) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
 	if len(newPassword) < 8 {
 		s.log.Debug("Password too short", slog.Int64("userID", id))
 		return custom_errors.ErrInvalidPassword

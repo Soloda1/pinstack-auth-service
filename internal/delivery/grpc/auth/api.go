@@ -11,11 +11,11 @@ var validate = validator.New()
 
 type AuthGRPCService struct {
 	pb.UnimplementedAuthServiceServer
-	tokenService *auth_service.TokenService
+	tokenService auth_service.TokenService
 	log          *logger.Logger
 }
 
-func NewAuthGRPCService(tokenService *auth_service.TokenService, log *logger.Logger) *AuthGRPCService {
+func NewAuthGRPCService(tokenService auth_service.TokenService, log *logger.Logger) *AuthGRPCService {
 	return &AuthGRPCService{
 		tokenService: tokenService,
 		log:          log,

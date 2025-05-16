@@ -7,7 +7,8 @@ import (
 	"pinstack-auth-service/internal/auth"
 )
 
-type Service interface {
+//go:generate mockery --name TokenService --dir . --output ../../../mocks --outpkg mocks --with-expecter
+type TokenService interface {
 	Login(ctx context.Context, login, password string) (*auth.TokenPair, error)
 	Register(ctx context.Context, user *model.User) (*auth.TokenPair, error)
 	Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error)
