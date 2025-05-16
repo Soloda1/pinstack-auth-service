@@ -12,23 +12,19 @@ import (
 	auth_repository "pinstack-auth-service/internal/repository/token"
 	"pinstack-auth-service/internal/utils"
 	"regexp"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 type Service struct {
-	db           *pgxpool.Pool
 	repo         auth_repository.TokenRepository
 	userClient   user_client.UserClient
 	tokenManager auth.TokenManager
 	log          *logger.Logger
 }
 
-func NewService(db *pgxpool.Pool, repo auth_repository.TokenRepository, tokenManager auth.TokenManager, userClient user_client.UserClient, log *logger.Logger) *Service {
+func NewService(repo auth_repository.TokenRepository, tokenManager auth.TokenManager, userClient user_client.UserClient, log *logger.Logger) *Service {
 	return &Service{
-		db:           db,
 		repo:         repo,
 		log:          log,
 		userClient:   userClient,
@@ -91,7 +87,7 @@ func (s *Service) Login(ctx context.Context, login, password string) (*auth.Toke
 		ExpiresAt: claims.ExpiresAt.Time,
 	}
 
-	err = s.repo.CreateRefreshToken(ctx, s.db, refreshToken)
+	err = s.repo.CreateRefreshToken(ctx, refreshToken)
 	if err != nil {
 		s.log.Error("Failed to create refresh token", slog.String("error", err.Error()), slog.String("login", login))
 		if errors.Is(err, custom_errors.ErrOperationNotAllowed) {
@@ -166,7 +162,7 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 		ExpiresAt: claims.ExpiresAt.Time,
 	}
 
-	err = s.repo.CreateRefreshToken(ctx, s.db, refreshToken)
+	err = s.repo.CreateRefreshToken(ctx, refreshToken)
 	if err != nil {
 		s.log.Error("Failed to create refresh token", slog.String("error", err.Error()), slog.String("username", user.Username))
 		if errors.Is(err, custom_errors.ErrOperationNotAllowed) {
@@ -190,7 +186,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 		return nil, custom_errors.ErrInvalidToken
 	}
 
-	_, err = s.repo.GetRefreshTokenByJTI(ctx, s.db, claims.JTI)
+	_, err = s.repo.GetRefreshTokenByJTI(ctx, claims.JTI)
 	if err != nil {
 		s.log.Error("Failed to get refresh token", slog.String("error", err.Error()), slog.String("jti", claims.JTI))
 		if errors.Is(err, custom_errors.ErrExpiredToken) {
@@ -234,7 +230,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 		ExpiresAt: newClaims.ExpiresAt.Time,
 	}
 
-	err = s.repo.CreateRefreshToken(ctx, s.db, newRefreshToken)
+	err = s.repo.CreateRefreshToken(ctx, newRefreshToken)
 	if err != nil {
 		s.log.Error("Failed to create refresh token", slog.String("error", err.Error()), slog.Int64("userID", user.ID))
 		if errors.Is(err, custom_errors.ErrOperationNotAllowed) {
@@ -243,7 +239,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 		return nil, custom_errors.ErrInternalServiceError
 	}
 
-	err = s.repo.DeleteRefreshTokenByJTI(ctx, s.db, claims.JTI)
+	err = s.repo.DeleteRefreshTokenByJTI(ctx, claims.JTI)
 	if err != nil {
 		s.log.Error("Failed to delete old refresh token", slog.String("error", err.Error()), slog.String("jti", claims.JTI))
 		if errors.Is(err, custom_errors.ErrInvalidToken) {
@@ -267,7 +263,7 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 		return custom_errors.ErrInvalidToken
 	}
 
-	err = s.repo.DeleteRefreshTokenByJTI(ctx, s.db, claims.JTI)
+	err = s.repo.DeleteRefreshTokenByJTI(ctx, claims.JTI)
 	if err != nil {
 		s.log.Error("Failed to delete refresh token", slog.String("error", err.Error()), slog.String("jti", claims.JTI))
 		if errors.Is(err, custom_errors.ErrInvalidToken) {
@@ -332,7 +328,7 @@ func (s *Service) UpdatePassword(ctx context.Context, id int64, oldPassword, new
 		}
 	}
 
-	err = s.repo.DeleteUserRefreshTokens(ctx, s.db, id)
+	err = s.repo.DeleteUserRefreshTokens(ctx, id)
 	if err != nil {
 		s.log.Error("Failed to delete refresh tokens", slog.String("error", err.Error()), slog.Int64("userID", id))
 		return custom_errors.ErrInternalServiceError

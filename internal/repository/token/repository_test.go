@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -17,45 +15,14 @@ import (
 	"pinstack-auth-service/internal/repository/token/memory"
 )
 
-type mockQuerier struct{}
-
-func (m *mockQuerier) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
-	return pgconn.CommandTag{}, nil
-}
-
-func (m *mockQuerier) QueryRow(ctx context.Context, sql string, args ...any) pgx.Row {
-	return nil
-}
-
-func (m *mockQuerier) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
-	return nil, nil
-}
-
-func (m *mockQuerier) Begin(ctx context.Context) (pgx.Tx, error) {
-	return nil, nil
-}
-
-func (m *mockQuerier) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
-	return nil, nil
-}
-
-func (m *mockQuerier) CopyFrom(ctx context.Context, tableName pgx.Identifier, columnNames []string, rowSrc pgx.CopyFromSource) (int64, error) {
-	return 0, nil
-}
-
-func (m *mockQuerier) SendBatch(ctx context.Context, b *pgx.Batch) pgx.BatchResults {
-	return nil
-}
-
-func setupTest(t *testing.T) (auth_repository.TokenRepository, auth_repository.Querier, func()) {
+func setupTest(t *testing.T) (auth_repository.TokenRepository, func()) {
 	log := logger.New("test")
 	repo := memory.NewTokenRepository(log)
-	q := &mockQuerier{}
-	return repo, q, func() {}
+	return repo, func() {}
 }
 
 func TestCreateRefreshToken(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -66,14 +33,14 @@ func TestCreateRefreshToken(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 	assert.NotZero(t, token.ID)
 	assert.False(t, token.CreatedAt.IsZero())
 }
 
 func TestGetRefreshToken(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -84,10 +51,10 @@ func TestGetRefreshToken(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	found, err := repo.GetRefreshToken(ctx, q, token.Token)
+	found, err := repo.GetRefreshToken(ctx, token.Token)
 	require.NoError(t, err)
 	assert.Equal(t, token.ID, found.ID)
 	assert.Equal(t, token.UserID, found.UserID)
@@ -96,12 +63,12 @@ func TestGetRefreshToken(t *testing.T) {
 	assert.Equal(t, token.ExpiresAt, found.ExpiresAt)
 	assert.Equal(t, token.CreatedAt, found.CreatedAt)
 
-	_, err = repo.GetRefreshToken(ctx, q, "non-existent")
+	_, err = repo.GetRefreshToken(ctx, "non-existent")
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestGetRefreshTokenByJTI(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -112,10 +79,10 @@ func TestGetRefreshTokenByJTI(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	found, err := repo.GetRefreshTokenByJTI(ctx, q, token.JTI)
+	found, err := repo.GetRefreshTokenByJTI(ctx, token.JTI)
 	require.NoError(t, err)
 	assert.Equal(t, token.ID, found.ID)
 	assert.Equal(t, token.UserID, found.UserID)
@@ -124,12 +91,12 @@ func TestGetRefreshTokenByJTI(t *testing.T) {
 	assert.Equal(t, token.ExpiresAt, found.ExpiresAt)
 	assert.Equal(t, token.CreatedAt, found.CreatedAt)
 
-	_, err = repo.GetRefreshTokenByJTI(ctx, q, "non-existent")
+	_, err = repo.GetRefreshTokenByJTI(ctx, "non-existent")
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestDeleteRefreshToken(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -140,21 +107,21 @@ func TestDeleteRefreshToken(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	err = repo.DeleteRefreshToken(ctx, q, token.Token)
+	err = repo.DeleteRefreshToken(ctx, token.Token)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshToken(ctx, q, token.Token)
+	_, err = repo.GetRefreshToken(ctx, token.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 
-	err = repo.DeleteRefreshToken(ctx, q, "non-existent")
+	err = repo.DeleteRefreshToken(ctx, "non-existent")
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestDeleteRefreshTokenByJTI(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -165,21 +132,21 @@ func TestDeleteRefreshTokenByJTI(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	err = repo.DeleteRefreshTokenByJTI(ctx, q, token.JTI)
+	err = repo.DeleteRefreshTokenByJTI(ctx, token.JTI)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshTokenByJTI(ctx, q, token.JTI)
+	_, err = repo.GetRefreshTokenByJTI(ctx, token.JTI)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 
-	err = repo.DeleteRefreshTokenByJTI(ctx, q, "non-existent")
+	err = repo.DeleteRefreshTokenByJTI(ctx, "non-existent")
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestDeleteUserRefreshTokens(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -196,22 +163,22 @@ func TestDeleteUserRefreshTokens(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token1)
+	err := repo.CreateRefreshToken(ctx, token1)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, token2)
-	require.NoError(t, err)
-
-	err = repo.DeleteUserRefreshTokens(ctx, q, 1)
+	err = repo.CreateRefreshToken(ctx, token2)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshToken(ctx, q, token1.Token)
+	err = repo.DeleteUserRefreshTokens(ctx, 1)
+	require.NoError(t, err)
+
+	_, err = repo.GetRefreshToken(ctx, token1.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
-	_, err = repo.GetRefreshToken(ctx, q, token2.Token)
+	_, err = repo.GetRefreshToken(ctx, token2.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestDeleteExpiredTokens(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -228,22 +195,22 @@ func TestDeleteExpiredTokens(t *testing.T) {
 		ExpiresAt: time.Now().Add(-time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, validToken)
+	err := repo.CreateRefreshToken(ctx, validToken)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, expiredToken)
-	require.NoError(t, err)
-
-	err = repo.DeleteExpiredTokens(ctx, q, time.Now())
+	err = repo.CreateRefreshToken(ctx, expiredToken)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshToken(ctx, q, validToken.Token)
+	err = repo.DeleteExpiredTokens(ctx, time.Now())
 	require.NoError(t, err)
-	_, err = repo.GetRefreshToken(ctx, q, expiredToken.Token)
+
+	_, err = repo.GetRefreshToken(ctx, validToken.Token)
+	require.NoError(t, err)
+	_, err = repo.GetRefreshToken(ctx, expiredToken.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestCreateRefreshTokenWithDuplicateJTI(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -260,15 +227,15 @@ func TestCreateRefreshTokenWithDuplicateJTI(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token1)
+	err := repo.CreateRefreshToken(ctx, token1)
 	require.NoError(t, err)
 
-	err = repo.CreateRefreshToken(ctx, q, token2)
+	err = repo.CreateRefreshToken(ctx, token2)
 	assert.Equal(t, custom_errors.ErrOperationNotAllowed.Error(), err.Error())
 }
 
 func TestGetExpiredRefreshToken(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -279,15 +246,15 @@ func TestGetExpiredRefreshToken(t *testing.T) {
 		ExpiresAt: time.Now().Add(-time.Hour), // Истекший токен
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshToken(ctx, q, token.Token)
+	_, err = repo.GetRefreshToken(ctx, token.Token)
 	assert.Equal(t, custom_errors.ErrExpiredToken.Error(), err.Error())
 }
 
 func TestGetExpiredRefreshTokenByJTI(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -298,15 +265,15 @@ func TestGetExpiredRefreshTokenByJTI(t *testing.T) {
 		ExpiresAt: time.Now().Add(-time.Hour), // Истекший токен
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token)
+	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshTokenByJTI(ctx, q, token.JTI)
+	_, err = repo.GetRefreshTokenByJTI(ctx, token.JTI)
 	assert.Equal(t, custom_errors.ErrExpiredToken.Error(), err.Error())
 }
 
 func TestDeleteExpiredTokensWithMixedTokens(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -329,29 +296,29 @@ func TestDeleteExpiredTokensWithMixedTokens(t *testing.T) {
 		ExpiresAt: time.Now().Add(-2 * time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, validToken)
+	err := repo.CreateRefreshToken(ctx, validToken)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, expiredToken1)
+	err = repo.CreateRefreshToken(ctx, expiredToken1)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, expiredToken2)
+	err = repo.CreateRefreshToken(ctx, expiredToken2)
 	require.NoError(t, err)
 
-	err = repo.DeleteExpiredTokens(ctx, q, time.Now())
+	err = repo.DeleteExpiredTokens(ctx, time.Now())
 	require.NoError(t, err)
 
 	// Проверяем, что валидный токен остался
-	_, err = repo.GetRefreshToken(ctx, q, validToken.Token)
+	_, err = repo.GetRefreshToken(ctx, validToken.Token)
 	require.NoError(t, err)
 
 	// Проверяем, что истекшие токены удалены
-	_, err = repo.GetRefreshToken(ctx, q, expiredToken1.Token)
+	_, err = repo.GetRefreshToken(ctx, expiredToken1.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
-	_, err = repo.GetRefreshToken(ctx, q, expiredToken2.Token)
+	_, err = repo.GetRefreshToken(ctx, expiredToken2.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 }
 
 func TestDeleteUserRefreshTokensWithMixedUsers(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -374,27 +341,27 @@ func TestDeleteUserRefreshTokensWithMixedUsers(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, user1Token1)
+	err := repo.CreateRefreshToken(ctx, user1Token1)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, user1Token2)
+	err = repo.CreateRefreshToken(ctx, user1Token2)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, user2Token)
-	require.NoError(t, err)
-
-	err = repo.DeleteUserRefreshTokens(ctx, q, 1)
+	err = repo.CreateRefreshToken(ctx, user2Token)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshToken(ctx, q, user1Token1.Token)
+	err = repo.DeleteUserRefreshTokens(ctx, 1)
+	require.NoError(t, err)
+
+	_, err = repo.GetRefreshToken(ctx, user1Token1.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
-	_, err = repo.GetRefreshToken(ctx, q, user1Token2.Token)
+	_, err = repo.GetRefreshToken(ctx, user1Token2.Token)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 
-	_, err = repo.GetRefreshToken(ctx, q, user2Token.Token)
+	_, err = repo.GetRefreshToken(ctx, user2Token.Token)
 	require.NoError(t, err)
 }
 
 func TestDeleteRefreshTokenByJTIWithMultipleTokens(t *testing.T) {
-	repo, q, cleanup := setupTest(t)
+	repo, cleanup := setupTest(t)
 	defer cleanup()
 
 	ctx := context.Background()
@@ -411,17 +378,17 @@ func TestDeleteRefreshTokenByJTIWithMultipleTokens(t *testing.T) {
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
 
-	err := repo.CreateRefreshToken(ctx, q, token1)
+	err := repo.CreateRefreshToken(ctx, token1)
 	require.NoError(t, err)
-	err = repo.CreateRefreshToken(ctx, q, token2)
-	require.NoError(t, err)
-
-	err = repo.DeleteRefreshTokenByJTI(ctx, q, token1.JTI)
+	err = repo.CreateRefreshToken(ctx, token2)
 	require.NoError(t, err)
 
-	_, err = repo.GetRefreshTokenByJTI(ctx, q, token1.JTI)
+	err = repo.DeleteRefreshTokenByJTI(ctx, token1.JTI)
+	require.NoError(t, err)
+
+	_, err = repo.GetRefreshTokenByJTI(ctx, token1.JTI)
 	assert.ErrorIs(t, err, custom_errors.ErrInvalidToken)
 
-	_, err = repo.GetRefreshTokenByJTI(ctx, q, token2.JTI)
+	_, err = repo.GetRefreshTokenByJTI(ctx, token2.JTI)
 	require.NoError(t, err)
 }

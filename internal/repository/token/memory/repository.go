@@ -9,7 +9,6 @@ import (
 	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
-	auth_repository "pinstack-auth-service/internal/repository/token"
 )
 
 type Repository struct {
@@ -27,7 +26,7 @@ func NewTokenRepository(log *logger.Logger) *Repository {
 	}
 }
 
-func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Querier, token *model.RefreshToken) error {
+func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -47,7 +46,7 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Q
 	return nil
 }
 
-func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Querier, token string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -67,7 +66,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Quer
 	return t, nil
 }
 
-func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -87,7 +86,7 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository
 	return nil, custom_errors.ErrInvalidToken
 }
 
-func (r *Repository) DeleteRefreshToken(ctx context.Context, q auth_repository.Querier, token string) error {
+func (r *Repository) DeleteRefreshToken(ctx context.Context, token string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -100,7 +99,7 @@ func (r *Repository) DeleteRefreshToken(ctx context.Context, q auth_repository.Q
 	return nil
 }
 
-func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) error {
+func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -115,7 +114,7 @@ func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_reposit
 	return custom_errors.ErrInvalidToken
 }
 
-func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, q auth_repository.Querier, userID int64) error {
+func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, userID int64) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -128,7 +127,7 @@ func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, q auth_reposit
 	return nil
 }
 
-func (r *Repository) DeleteExpiredTokens(ctx context.Context, q auth_repository.Querier, before time.Time) error {
+func (r *Repository) DeleteExpiredTokens(ctx context.Context, before time.Time) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

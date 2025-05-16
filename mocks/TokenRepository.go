@@ -4,11 +4,9 @@ package mocks
 
 import (
 	context "context"
-	auth_repository "pinstack-auth-service/internal/repository/token"
+	model "pinstack-auth-service/internal/model"
 
 	mock "github.com/stretchr/testify/mock"
-
-	model "pinstack-auth-service/internal/model"
 
 	time "time"
 )
@@ -26,17 +24,17 @@ func (_m *TokenRepository) EXPECT() *TokenRepository_Expecter {
 	return &TokenRepository_Expecter{mock: &_m.Mock}
 }
 
-// CreateRefreshToken provides a mock function with given fields: ctx, q, token
-func (_m *TokenRepository) CreateRefreshToken(ctx context.Context, q auth_repository.Querier, token *model.RefreshToken) error {
-	ret := _m.Called(ctx, q, token)
+// CreateRefreshToken provides a mock function with given fields: ctx, token
+func (_m *TokenRepository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
+	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateRefreshToken")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, *model.RefreshToken) error); ok {
-		r0 = rf(ctx, q, token)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.RefreshToken) error); ok {
+		r0 = rf(ctx, token)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -51,15 +49,14 @@ type TokenRepository_CreateRefreshToken_Call struct {
 
 // CreateRefreshToken is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - token *model.RefreshToken
-func (_e *TokenRepository_Expecter) CreateRefreshToken(ctx interface{}, q interface{}, token interface{}) *TokenRepository_CreateRefreshToken_Call {
-	return &TokenRepository_CreateRefreshToken_Call{Call: _e.mock.On("CreateRefreshToken", ctx, q, token)}
+func (_e *TokenRepository_Expecter) CreateRefreshToken(ctx interface{}, token interface{}) *TokenRepository_CreateRefreshToken_Call {
+	return &TokenRepository_CreateRefreshToken_Call{Call: _e.mock.On("CreateRefreshToken", ctx, token)}
 }
 
-func (_c *TokenRepository_CreateRefreshToken_Call) Run(run func(ctx context.Context, q auth_repository.Querier, token *model.RefreshToken)) *TokenRepository_CreateRefreshToken_Call {
+func (_c *TokenRepository_CreateRefreshToken_Call) Run(run func(ctx context.Context, token *model.RefreshToken)) *TokenRepository_CreateRefreshToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(*model.RefreshToken))
+		run(args[0].(context.Context), args[1].(*model.RefreshToken))
 	})
 	return _c
 }
@@ -69,22 +66,22 @@ func (_c *TokenRepository_CreateRefreshToken_Call) Return(_a0 error) *TokenRepos
 	return _c
 }
 
-func (_c *TokenRepository_CreateRefreshToken_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, *model.RefreshToken) error) *TokenRepository_CreateRefreshToken_Call {
+func (_c *TokenRepository_CreateRefreshToken_Call) RunAndReturn(run func(context.Context, *model.RefreshToken) error) *TokenRepository_CreateRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// DeleteExpiredTokens provides a mock function with given fields: ctx, q, before
-func (_m *TokenRepository) DeleteExpiredTokens(ctx context.Context, q auth_repository.Querier, before time.Time) error {
-	ret := _m.Called(ctx, q, before)
+// DeleteExpiredTokens provides a mock function with given fields: ctx, before
+func (_m *TokenRepository) DeleteExpiredTokens(ctx context.Context, before time.Time) error {
+	ret := _m.Called(ctx, before)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteExpiredTokens")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, time.Time) error); ok {
-		r0 = rf(ctx, q, before)
+	if rf, ok := ret.Get(0).(func(context.Context, time.Time) error); ok {
+		r0 = rf(ctx, before)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -99,15 +96,14 @@ type TokenRepository_DeleteExpiredTokens_Call struct {
 
 // DeleteExpiredTokens is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - before time.Time
-func (_e *TokenRepository_Expecter) DeleteExpiredTokens(ctx interface{}, q interface{}, before interface{}) *TokenRepository_DeleteExpiredTokens_Call {
-	return &TokenRepository_DeleteExpiredTokens_Call{Call: _e.mock.On("DeleteExpiredTokens", ctx, q, before)}
+func (_e *TokenRepository_Expecter) DeleteExpiredTokens(ctx interface{}, before interface{}) *TokenRepository_DeleteExpiredTokens_Call {
+	return &TokenRepository_DeleteExpiredTokens_Call{Call: _e.mock.On("DeleteExpiredTokens", ctx, before)}
 }
 
-func (_c *TokenRepository_DeleteExpiredTokens_Call) Run(run func(ctx context.Context, q auth_repository.Querier, before time.Time)) *TokenRepository_DeleteExpiredTokens_Call {
+func (_c *TokenRepository_DeleteExpiredTokens_Call) Run(run func(ctx context.Context, before time.Time)) *TokenRepository_DeleteExpiredTokens_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(time.Time))
+		run(args[0].(context.Context), args[1].(time.Time))
 	})
 	return _c
 }
@@ -117,22 +113,22 @@ func (_c *TokenRepository_DeleteExpiredTokens_Call) Return(_a0 error) *TokenRepo
 	return _c
 }
 
-func (_c *TokenRepository_DeleteExpiredTokens_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, time.Time) error) *TokenRepository_DeleteExpiredTokens_Call {
+func (_c *TokenRepository_DeleteExpiredTokens_Call) RunAndReturn(run func(context.Context, time.Time) error) *TokenRepository_DeleteExpiredTokens_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// DeleteRefreshToken provides a mock function with given fields: ctx, q, token
-func (_m *TokenRepository) DeleteRefreshToken(ctx context.Context, q auth_repository.Querier, token string) error {
-	ret := _m.Called(ctx, q, token)
+// DeleteRefreshToken provides a mock function with given fields: ctx, token
+func (_m *TokenRepository) DeleteRefreshToken(ctx context.Context, token string) error {
+	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteRefreshToken")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) error); ok {
-		r0 = rf(ctx, q, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, token)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -147,15 +143,14 @@ type TokenRepository_DeleteRefreshToken_Call struct {
 
 // DeleteRefreshToken is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - token string
-func (_e *TokenRepository_Expecter) DeleteRefreshToken(ctx interface{}, q interface{}, token interface{}) *TokenRepository_DeleteRefreshToken_Call {
-	return &TokenRepository_DeleteRefreshToken_Call{Call: _e.mock.On("DeleteRefreshToken", ctx, q, token)}
+func (_e *TokenRepository_Expecter) DeleteRefreshToken(ctx interface{}, token interface{}) *TokenRepository_DeleteRefreshToken_Call {
+	return &TokenRepository_DeleteRefreshToken_Call{Call: _e.mock.On("DeleteRefreshToken", ctx, token)}
 }
 
-func (_c *TokenRepository_DeleteRefreshToken_Call) Run(run func(ctx context.Context, q auth_repository.Querier, token string)) *TokenRepository_DeleteRefreshToken_Call {
+func (_c *TokenRepository_DeleteRefreshToken_Call) Run(run func(ctx context.Context, token string)) *TokenRepository_DeleteRefreshToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -165,22 +160,22 @@ func (_c *TokenRepository_DeleteRefreshToken_Call) Return(_a0 error) *TokenRepos
 	return _c
 }
 
-func (_c *TokenRepository_DeleteRefreshToken_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, string) error) *TokenRepository_DeleteRefreshToken_Call {
+func (_c *TokenRepository_DeleteRefreshToken_Call) RunAndReturn(run func(context.Context, string) error) *TokenRepository_DeleteRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// DeleteRefreshTokenByJTI provides a mock function with given fields: ctx, q, jti
-func (_m *TokenRepository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) error {
-	ret := _m.Called(ctx, q, jti)
+// DeleteRefreshTokenByJTI provides a mock function with given fields: ctx, jti
+func (_m *TokenRepository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) error {
+	ret := _m.Called(ctx, jti)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteRefreshTokenByJTI")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) error); ok {
-		r0 = rf(ctx, q, jti)
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, jti)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -195,15 +190,14 @@ type TokenRepository_DeleteRefreshTokenByJTI_Call struct {
 
 // DeleteRefreshTokenByJTI is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - jti string
-func (_e *TokenRepository_Expecter) DeleteRefreshTokenByJTI(ctx interface{}, q interface{}, jti interface{}) *TokenRepository_DeleteRefreshTokenByJTI_Call {
-	return &TokenRepository_DeleteRefreshTokenByJTI_Call{Call: _e.mock.On("DeleteRefreshTokenByJTI", ctx, q, jti)}
+func (_e *TokenRepository_Expecter) DeleteRefreshTokenByJTI(ctx interface{}, jti interface{}) *TokenRepository_DeleteRefreshTokenByJTI_Call {
+	return &TokenRepository_DeleteRefreshTokenByJTI_Call{Call: _e.mock.On("DeleteRefreshTokenByJTI", ctx, jti)}
 }
 
-func (_c *TokenRepository_DeleteRefreshTokenByJTI_Call) Run(run func(ctx context.Context, q auth_repository.Querier, jti string)) *TokenRepository_DeleteRefreshTokenByJTI_Call {
+func (_c *TokenRepository_DeleteRefreshTokenByJTI_Call) Run(run func(ctx context.Context, jti string)) *TokenRepository_DeleteRefreshTokenByJTI_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -213,22 +207,22 @@ func (_c *TokenRepository_DeleteRefreshTokenByJTI_Call) Return(_a0 error) *Token
 	return _c
 }
 
-func (_c *TokenRepository_DeleteRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, string) error) *TokenRepository_DeleteRefreshTokenByJTI_Call {
+func (_c *TokenRepository_DeleteRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, string) error) *TokenRepository_DeleteRefreshTokenByJTI_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// DeleteUserRefreshTokens provides a mock function with given fields: ctx, q, userID
-func (_m *TokenRepository) DeleteUserRefreshTokens(ctx context.Context, q auth_repository.Querier, userID int64) error {
-	ret := _m.Called(ctx, q, userID)
+// DeleteUserRefreshTokens provides a mock function with given fields: ctx, userID
+func (_m *TokenRepository) DeleteUserRefreshTokens(ctx context.Context, userID int64) error {
+	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteUserRefreshTokens")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, int64) error); ok {
-		r0 = rf(ctx, q, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -243,15 +237,14 @@ type TokenRepository_DeleteUserRefreshTokens_Call struct {
 
 // DeleteUserRefreshTokens is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - userID int64
-func (_e *TokenRepository_Expecter) DeleteUserRefreshTokens(ctx interface{}, q interface{}, userID interface{}) *TokenRepository_DeleteUserRefreshTokens_Call {
-	return &TokenRepository_DeleteUserRefreshTokens_Call{Call: _e.mock.On("DeleteUserRefreshTokens", ctx, q, userID)}
+func (_e *TokenRepository_Expecter) DeleteUserRefreshTokens(ctx interface{}, userID interface{}) *TokenRepository_DeleteUserRefreshTokens_Call {
+	return &TokenRepository_DeleteUserRefreshTokens_Call{Call: _e.mock.On("DeleteUserRefreshTokens", ctx, userID)}
 }
 
-func (_c *TokenRepository_DeleteUserRefreshTokens_Call) Run(run func(ctx context.Context, q auth_repository.Querier, userID int64)) *TokenRepository_DeleteUserRefreshTokens_Call {
+func (_c *TokenRepository_DeleteUserRefreshTokens_Call) Run(run func(ctx context.Context, userID int64)) *TokenRepository_DeleteUserRefreshTokens_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(int64))
+		run(args[0].(context.Context), args[1].(int64))
 	})
 	return _c
 }
@@ -261,14 +254,14 @@ func (_c *TokenRepository_DeleteUserRefreshTokens_Call) Return(_a0 error) *Token
 	return _c
 }
 
-func (_c *TokenRepository_DeleteUserRefreshTokens_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, int64) error) *TokenRepository_DeleteUserRefreshTokens_Call {
+func (_c *TokenRepository_DeleteUserRefreshTokens_Call) RunAndReturn(run func(context.Context, int64) error) *TokenRepository_DeleteUserRefreshTokens_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetRefreshToken provides a mock function with given fields: ctx, q, token
-func (_m *TokenRepository) GetRefreshToken(ctx context.Context, q auth_repository.Querier, token string) (*model.RefreshToken, error) {
-	ret := _m.Called(ctx, q, token)
+// GetRefreshToken provides a mock function with given fields: ctx, token
+func (_m *TokenRepository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
+	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRefreshToken")
@@ -276,19 +269,19 @@ func (_m *TokenRepository) GetRefreshToken(ctx context.Context, q auth_repositor
 
 	var r0 *model.RefreshToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) (*model.RefreshToken, error)); ok {
-		return rf(ctx, q, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
+		return rf(ctx, token)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) *model.RefreshToken); ok {
-		r0 = rf(ctx, q, token)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
+		r0 = rf(ctx, token)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.RefreshToken)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, auth_repository.Querier, string) error); ok {
-		r1 = rf(ctx, q, token)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, token)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -303,15 +296,14 @@ type TokenRepository_GetRefreshToken_Call struct {
 
 // GetRefreshToken is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - token string
-func (_e *TokenRepository_Expecter) GetRefreshToken(ctx interface{}, q interface{}, token interface{}) *TokenRepository_GetRefreshToken_Call {
-	return &TokenRepository_GetRefreshToken_Call{Call: _e.mock.On("GetRefreshToken", ctx, q, token)}
+func (_e *TokenRepository_Expecter) GetRefreshToken(ctx interface{}, token interface{}) *TokenRepository_GetRefreshToken_Call {
+	return &TokenRepository_GetRefreshToken_Call{Call: _e.mock.On("GetRefreshToken", ctx, token)}
 }
 
-func (_c *TokenRepository_GetRefreshToken_Call) Run(run func(ctx context.Context, q auth_repository.Querier, token string)) *TokenRepository_GetRefreshToken_Call {
+func (_c *TokenRepository_GetRefreshToken_Call) Run(run func(ctx context.Context, token string)) *TokenRepository_GetRefreshToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -321,14 +313,14 @@ func (_c *TokenRepository_GetRefreshToken_Call) Return(_a0 *model.RefreshToken, 
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshToken_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshToken_Call {
+func (_c *TokenRepository_GetRefreshToken_Call) RunAndReturn(run func(context.Context, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// GetRefreshTokenByJTI provides a mock function with given fields: ctx, q, jti
-func (_m *TokenRepository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) (*model.RefreshToken, error) {
-	ret := _m.Called(ctx, q, jti)
+// GetRefreshTokenByJTI provides a mock function with given fields: ctx, jti
+func (_m *TokenRepository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
+	ret := _m.Called(ctx, jti)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRefreshTokenByJTI")
@@ -336,19 +328,19 @@ func (_m *TokenRepository) GetRefreshTokenByJTI(ctx context.Context, q auth_repo
 
 	var r0 *model.RefreshToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) (*model.RefreshToken, error)); ok {
-		return rf(ctx, q, jti)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
+		return rf(ctx, jti)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, auth_repository.Querier, string) *model.RefreshToken); ok {
-		r0 = rf(ctx, q, jti)
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
+		r0 = rf(ctx, jti)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.RefreshToken)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, auth_repository.Querier, string) error); ok {
-		r1 = rf(ctx, q, jti)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, jti)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -363,15 +355,14 @@ type TokenRepository_GetRefreshTokenByJTI_Call struct {
 
 // GetRefreshTokenByJTI is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q auth_repository.Querier
 //   - jti string
-func (_e *TokenRepository_Expecter) GetRefreshTokenByJTI(ctx interface{}, q interface{}, jti interface{}) *TokenRepository_GetRefreshTokenByJTI_Call {
-	return &TokenRepository_GetRefreshTokenByJTI_Call{Call: _e.mock.On("GetRefreshTokenByJTI", ctx, q, jti)}
+func (_e *TokenRepository_Expecter) GetRefreshTokenByJTI(ctx interface{}, jti interface{}) *TokenRepository_GetRefreshTokenByJTI_Call {
+	return &TokenRepository_GetRefreshTokenByJTI_Call{Call: _e.mock.On("GetRefreshTokenByJTI", ctx, jti)}
 }
 
-func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Run(run func(ctx context.Context, q auth_repository.Querier, jti string)) *TokenRepository_GetRefreshTokenByJTI_Call {
+func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Run(run func(ctx context.Context, jti string)) *TokenRepository_GetRefreshTokenByJTI_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(auth_repository.Querier), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -381,7 +372,7 @@ func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Return(_a0 *model.RefreshTo
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, auth_repository.Querier, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshTokenByJTI_Call {
+func (_c *TokenRepository_GetRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshTokenByJTI_Call {
 	_c.Call.Return(run)
 	return _c
 }

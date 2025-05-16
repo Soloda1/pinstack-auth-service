@@ -58,8 +58,8 @@ func main() {
 
 	userClient := user_client.NewUserClient(userServiceConn, log)
 	tokenManager := auth.NewTokenManager(cfg.JWT.Secret, cfg.JWT.Secret, cfg.JWT.AccessExpiresAt, cfg.JWT.RefreshExpiresAt, log)
-	tokenRepo := token_repository.NewTokenRepository(log)
-	tokenService := token_service.NewService(pool, tokenRepo, tokenManager, userClient, log)
+	tokenRepo := token_repository.NewTokenRepository(pool, log)
+	tokenService := token_service.NewService(tokenRepo, tokenManager, userClient, log)
 
 	authGRPCApi := auth_grpc.NewAuthGRPCService(tokenService, log)
 	grpcServer := delivery_grpc.NewServer(authGRPCApi, cfg.GRPCServer.Address, cfg.GRPCServer.Port, log)

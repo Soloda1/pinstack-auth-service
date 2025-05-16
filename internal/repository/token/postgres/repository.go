@@ -7,22 +7,26 @@ import (
 	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
-	auth_repository "pinstack-auth-service/internal/repository/token"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
-	log *logger.Logger
+	pool *pgxpool.Pool
+	log  *logger.Logger
 }
 
-func NewTokenRepository(log *logger.Logger) *Repository {
-	return &Repository{log}
+func NewTokenRepository(pool *pgxpool.Pool, log *logger.Logger) *Repository {
+	return &Repository{
+		pool: pool,
+		log:  log,
+	}
 }
 
-func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Querier, token *model.RefreshToken) error {
+func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
 	args := pgx.NamedArgs{
 		"token":      token.Token,
 		"user_id":    token.UserID,
@@ -34,7 +38,7 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Q
 	query := `INSERT INTO refresh_tokens(user_id, token, jti, expires_at, created_at)
 				VALUES (@user_id, @token, @jti, @expires_at, @created_at)`
 
-	_, err := q.Exec(ctx, query, args)
+	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -56,7 +60,7 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, q auth_repository.Q
 	return nil
 }
 
-func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Querier, token string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
 	var refreshToken model.RefreshToken
 	args := pgx.NamedArgs{
 		"token": token,
@@ -66,7 +70,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Quer
 			  FROM refresh_tokens 
 			  WHERE token = @token`
 
-	err := q.QueryRow(ctx, query, args).Scan(
+	err := r.pool.QueryRow(ctx, query, args).Scan(
 		&refreshToken.ID,
 		&refreshToken.UserID,
 		&refreshToken.Token,
@@ -95,7 +99,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, q auth_repository.Quer
 	return &refreshToken, nil
 }
 
-func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
 	var refreshToken model.RefreshToken
 	args := pgx.NamedArgs{
 		"jti": jti,
@@ -105,7 +109,7 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository
 			  FROM refresh_tokens 
 			  WHERE jti = @jti`
 
-	err := q.QueryRow(ctx, query, args).Scan(
+	err := r.pool.QueryRow(ctx, query, args).Scan(
 		&refreshToken.ID,
 		&refreshToken.UserID,
 		&refreshToken.Token,
@@ -134,13 +138,13 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, q auth_repository
 	return &refreshToken, nil
 }
 
-func (r *Repository) DeleteRefreshToken(ctx context.Context, q auth_repository.Querier, token string) error {
+func (r *Repository) DeleteRefreshToken(ctx context.Context, token string) error {
 	args := pgx.NamedArgs{
 		"token": token,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE token = @token`
-	result, err := q.Exec(ctx, query, args)
+	result, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete refresh token",
 			slog.String("error", err.Error()),
@@ -156,13 +160,13 @@ func (r *Repository) DeleteRefreshToken(ctx context.Context, q auth_repository.Q
 	return nil
 }
 
-func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_repository.Querier, jti string) error {
+func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) error {
 	args := pgx.NamedArgs{
 		"jti": jti,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE jti = @jti`
-	result, err := q.Exec(ctx, query, args)
+	result, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete refresh token by JTI",
 			slog.String("error", err.Error()),
@@ -178,13 +182,13 @@ func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, q auth_reposit
 	return nil
 }
 
-func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, q auth_repository.Querier, userID int64) error {
+func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, userID int64) error {
 	args := pgx.NamedArgs{
 		"user_id": userID,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE user_id = @user_id`
-	_, err := q.Exec(ctx, query, args)
+	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete user refresh tokens",
 			slog.String("error", err.Error()),
@@ -195,13 +199,13 @@ func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, q auth_reposit
 	return nil
 }
 
-func (r *Repository) DeleteExpiredTokens(ctx context.Context, q auth_repository.Querier, before time.Time) error {
+func (r *Repository) DeleteExpiredTokens(ctx context.Context, before time.Time) error {
 	args := pgx.NamedArgs{
 		"before": before,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE expires_at < @before`
-	_, err := q.Exec(ctx, query, args)
+	_, err := r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete expired tokens",
 			slog.String("error", err.Error()),
