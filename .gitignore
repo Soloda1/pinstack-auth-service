@@ -28,6 +28,8 @@ Thumbs.db
 /go.sum
 /go.mod
 *.log
+go.mod
+go.sum
 
 # Project specific
 /config/config.yml
