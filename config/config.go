@@ -14,6 +14,7 @@ type Config struct {
 	Database    Database
 	JWT         JWT
 	UserService UserService
+	Prometheus  Prometheus
 }
 
 type GRPCServer struct {
@@ -37,6 +38,11 @@ type JWT struct {
 }
 
 type UserService struct {
+	Address string
+	Port    int
+}
+
+type Prometheus struct {
 	Address string
 	Port    int
 }
@@ -65,6 +71,9 @@ func MustLoad() *Config {
 	viper.SetDefault("user_service.address", "user-service")
 	viper.SetDefault("user_service.port", 50051)
 
+	viper.SetDefault("prometheus.address", "0.0.0.0")
+	viper.SetDefault("prometheus.port", 9102)
+
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Error reading config file: %s", err)
 		os.Exit(1)
@@ -92,6 +101,10 @@ func MustLoad() *Config {
 		UserService: UserService{
 			Address: viper.GetString("user_service.address"),
 			Port:    viper.GetInt("user_service.port"),
+		},
+		Prometheus: Prometheus{
+			Address: viper.GetString("prometheus.address"),
+			Port:    viper.GetInt("prometheus.port"),
 		},
 	}
 
