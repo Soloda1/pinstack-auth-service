@@ -20,3 +20,7 @@ jwt:
 user_service:
   address: "user-service"
   port: 50051
+
+prometheus:
+  address: "0.0.0.0"
+  port: 9102
