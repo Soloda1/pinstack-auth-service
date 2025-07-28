@@ -2,8 +2,10 @@ package auth_grpc
 
 import (
 	"context"
+	"log/slog"
 	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/model"
+	"pinstack-auth-service/internal/utils"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/auth/v1"
 	"google.golang.org/grpc/codes"
@@ -11,29 +13,42 @@ import (
 )
 
 type RegisterRequest struct {
-	Username string `validate:"required,min=3"`
-	Email    string `validate:"required,email"`
-	Password string `validate:"required,min=8"`
+	Username  string `validate:"required,min=3"`
+	Email     string `validate:"required,email"`
+	Password  string `validate:"required,min=8"`
+	FullName  string `validate:"min=3,omitempty"`
+	Bio       string `validate:"omitempty,min=8"`
+	AvatarUrl string `validate:"omitempty,min=8"`
 }
 
 func (s *AuthGRPCService) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.TokenPair, error) {
-	s.log.Info("Register attempt", "username", req.Username, "email", req.Email)
+	s.log.Info("Register attempt", slog.Any("req", req))
 
 	input := RegisterRequest{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  req.Password,
+		FullName:  utils.StrPtrToStr(req.FullName),
+		Bio:       utils.StrPtrToStr(req.Bio),
+		AvatarUrl: utils.StrPtrToStr(req.AvatarUrl),
 	}
 	if err := validate.Struct(input); err != nil {
 		s.log.Warn("Invalid register request", "error", err, "username", req.Username)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	s.log.Debug("input register request", slog.Any("input", input))
+
 	user := &model.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: req.Password,
+		Username:  req.Username,
+		Email:     req.Email,
+		Password:  req.Password,
+		FullName:  req.FullName,
+		Bio:       req.Bio,
+		AvatarURL: req.AvatarUrl,
 	}
+
+	s.log.Debug("user register request", slog.Any("user", user))
 
 	tokens, err := s.tokenService.Register(ctx, user)
 	if err != nil {

@@ -42,11 +42,14 @@ func (u userClient) GetUser(ctx context.Context, id int64) (*model.User, error) 
 }
 
 func (u userClient) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
-	u.log.Info("Creating new user", slog.String("username", user.Username), slog.String("email", user.Email))
+	u.log.Info("Creating new user", slog.Any("user", user))
 	resp, err := u.client.CreateUser(ctx, &pb.CreateUserRequest{
-		Username: user.Username,
-		Email:    user.Email,
-		Password: user.Password,
+		Username:  user.Username,
+		Email:     user.Email,
+		Password:  user.Password,
+		FullName:  user.FullName,
+		Bio:       user.Bio,
+		AvatarUrl: user.AvatarURL,
 	})
 	if err != nil {
 		u.log.Error("Failed to create user", slog.String("username", user.Username), slog.String("error", err.Error()))
