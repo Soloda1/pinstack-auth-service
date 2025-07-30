@@ -4,14 +4,13 @@ import "errors"
 
 // Ошибки пользователя
 var (
-	ErrUserNotFound      = errors.New("user not found")
-	ErrUsernameExists    = errors.New("username already exists")
-	ErrEmailExists       = errors.New("email already exists")
-	ErrInvalidUsername   = errors.New("invalid username")
-	ErrInvalidEmail      = errors.New("invalid email")
-	ErrInvalidPassword   = errors.New("invalid password")
-	ErrPasswordMismatch  = errors.New("passwords do not match")
-	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFound     = errors.New("user not found")
+	ErrUsernameExists   = errors.New("username already exists")
+	ErrEmailExists      = errors.New("email already exists")
+	ErrInvalidUsername  = errors.New("invalid username")
+	ErrInvalidEmail     = errors.New("invalid email")
+	ErrInvalidPassword  = errors.New("invalid password")
+	ErrPasswordMismatch = errors.New("passwords do not match")
 )
 
 // Ошибки валидации

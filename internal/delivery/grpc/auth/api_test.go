@@ -109,11 +109,26 @@ func TestAuthGRPCService_Register(t *testing.T) {
 		assert.Equal(t, tokens.RefreshToken, resp.RefreshToken)
 	})
 
-	t.Run("user already exists", func(t *testing.T) {
+	t.Run("username already exists", func(t *testing.T) {
 		mockTokenService.ExpectedCalls = nil
 		mockTokenService.Calls = nil
 
-		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUserAlreadyExists)
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUsernameExists)
+
+		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
+		resp, err := service.Register(context.Background(), req)
+		assert.Error(t, err)
+		st, ok := status.FromError(err)
+		assert.True(t, ok)
+		assert.Equal(t, codes.AlreadyExists, st.Code())
+		assert.Nil(t, resp)
+	})
+
+	t.Run("email already exists", func(t *testing.T) {
+		mockTokenService.ExpectedCalls = nil
+		mockTokenService.Calls = nil
+
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrEmailExists)
 
 		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
 		resp, err := service.Register(context.Background(), req)

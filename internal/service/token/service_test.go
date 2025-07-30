@@ -204,13 +204,13 @@ func TestService_Register(t *testing.T) {
 		assert.Nil(t, gotTokens)
 	})
 
-	t.Run("user already exists", func(t *testing.T) {
+	t.Run("username already exists", func(t *testing.T) {
 		mockUserClient.ExpectedCalls = nil
 		mockUserClient.Calls = nil
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUserAlreadyExists).Once()
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUsernameExists).Once()
 
 		gotTokens, err := service.Register(context.Background(), &model.User{
 			Username: "testuser",
@@ -218,7 +218,25 @@ func TestService_Register(t *testing.T) {
 			Password: "password123",
 		})
 		assert.Error(t, err)
-		assert.Equal(t, custom_errors.ErrUserAlreadyExists, err)
+		assert.Equal(t, custom_errors.ErrUsernameExists, err)
+		assert.Nil(t, gotTokens)
+	})
+
+	t.Run("email already exists", func(t *testing.T) {
+		mockUserClient.ExpectedCalls = nil
+		mockUserClient.Calls = nil
+		mockTokenManager.ExpectedCalls = nil
+		mockTokenManager.Calls = nil
+
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrEmailExists).Once()
+
+		gotTokens, err := service.Register(context.Background(), &model.User{
+			Username: "testuser",
+			Email:    "test@example.com",
+			Password: "password123",
+		})
+		assert.Error(t, err)
+		assert.Equal(t, custom_errors.ErrEmailExists, err)
 		assert.Nil(t, gotTokens)
 	})
 
