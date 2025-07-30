@@ -138,6 +138,10 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 			return nil, custom_errors.ErrInvalidPassword
 		case errors.Is(err, custom_errors.ErrExternalServiceError):
 			return nil, custom_errors.ErrExternalServiceError
+		case errors.Is(err, custom_errors.ErrUsernameExists):
+			return nil, custom_errors.ErrUsernameExists
+		case errors.Is(err, custom_errors.ErrEmailExists):
+			return nil, custom_errors.ErrEmailExists
 		default:
 			return nil, custom_errors.ErrInternalServiceError
 		}
@@ -269,7 +273,7 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	if err != nil {
 		s.log.Error("Failed to delete refresh token", slog.String("error", err.Error()), slog.String("jti", claims.JTI))
 		if errors.Is(err, custom_errors.ErrInvalidToken) {
-			return nil
+			return custom_errors.ErrInvalidToken
 		}
 		return custom_errors.ErrInternalServiceError
 	}

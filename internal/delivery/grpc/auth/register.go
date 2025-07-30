@@ -2,6 +2,7 @@ package auth_grpc
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/model"
@@ -37,8 +38,6 @@ func (s *AuthGRPCService) Register(ctx context.Context, req *pb.RegisterRequest)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	s.log.Debug("input register request", slog.Any("input", input))
-
 	user := &model.User{
 		Username:  req.Username,
 		Email:     req.Email,
@@ -48,17 +47,36 @@ func (s *AuthGRPCService) Register(ctx context.Context, req *pb.RegisterRequest)
 		AvatarURL: req.AvatarUrl,
 	}
 
-	s.log.Debug("user register request", slog.Any("user", user))
-
 	tokens, err := s.tokenService.Register(ctx, user)
 	if err != nil {
-		switch err {
-		case custom_errors.ErrUserAlreadyExists:
+		switch {
+		case errors.Is(err, custom_errors.ErrInvalidInput):
+			s.log.Warn("Invalid input data", "error", err, "username", req.Username)
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, custom_errors.ErrInvalidEmail):
+			s.log.Warn("Invalid email format", "error", err, "email", req.Email)
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, custom_errors.ErrInvalidPassword):
+			s.log.Warn("Invalid password", "error", err, "username", req.Username)
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, custom_errors.ErrUserAlreadyExists):
 			s.log.Warn("User already exists", "username", req.Username, "email", req.Email)
 			return nil, status.Error(codes.AlreadyExists, err.Error())
-		case custom_errors.ErrInvalidUsername, custom_errors.ErrInvalidEmail, custom_errors.ErrInvalidPassword:
-			s.log.Warn("Invalid user data", "error", err, "username", req.Username)
+		case errors.Is(err, custom_errors.ErrUsernameExists):
+			s.log.Warn("Username already exists", "username", req.Username)
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case errors.Is(err, custom_errors.ErrEmailExists):
+			s.log.Warn("Email already exists", "email", req.Email)
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		case errors.Is(err, custom_errors.ErrInvalidUsername):
+			s.log.Warn("Invalid username", "error", err, "username", req.Username)
 			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, custom_errors.ErrExternalServiceError):
+			s.log.Error("External service error during registration", "error", err, "username", req.Username)
+			return nil, status.Error(codes.Unavailable, err.Error())
+		case errors.Is(err, custom_errors.ErrOperationNotAllowed):
+			s.log.Error("Operation not allowed during registration", "error", err, "username", req.Username)
+			return nil, status.Error(codes.PermissionDenied, err.Error())
 		default:
 			s.log.Error("Registration failed", "error", err, "username", req.Username)
 			return nil, status.Error(codes.Internal, err.Error())
