@@ -17,7 +17,7 @@ type RegisterRequest struct {
 	Username  string `validate:"required,min=3"`
 	Email     string `validate:"required,email"`
 	Password  string `validate:"required,min=8"`
-	FullName  string `validate:"min=3,omitempty"`
+	FullName  string `validate:"omitempty,min=3"`
 	Bio       string `validate:"omitempty,min=8"`
 	AvatarUrl string `validate:"omitempty,min=8"`
 }
@@ -59,9 +59,6 @@ func (s *AuthGRPCService) Register(ctx context.Context, req *pb.RegisterRequest)
 		case errors.Is(err, custom_errors.ErrInvalidPassword):
 			s.log.Warn("Invalid password", "error", err, "username", req.Username)
 			return nil, status.Error(codes.InvalidArgument, err.Error())
-		case errors.Is(err, custom_errors.ErrUserAlreadyExists):
-			s.log.Warn("User already exists", "username", req.Username, "email", req.Email)
-			return nil, status.Error(codes.AlreadyExists, err.Error())
 		case errors.Is(err, custom_errors.ErrUsernameExists):
 			s.log.Warn("Username already exists", "username", req.Username)
 			return nil, status.Error(codes.AlreadyExists, err.Error())

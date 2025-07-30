@@ -128,8 +128,6 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 	if err != nil {
 		s.log.Error("Failed to create user", slog.String("error", err.Error()), slog.String("username", user.Username))
 		switch {
-		case errors.Is(err, custom_errors.ErrUserAlreadyExists):
-			return nil, custom_errors.ErrUserAlreadyExists
 		case errors.Is(err, custom_errors.ErrInvalidUsername):
 			return nil, custom_errors.ErrInvalidUsername
 		case errors.Is(err, custom_errors.ErrInvalidEmail):
