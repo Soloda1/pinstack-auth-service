@@ -57,7 +57,11 @@ func main() {
 		log.Error("Failed to connect to user service", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	defer userServiceConn.Close()
+	defer func() {
+		if err := userServiceConn.Close(); err != nil {
+			log.Error("Failed to close User Service connection", slog.String("error", err.Error()))
+		}
+	}()
 
 	userClient := user_client.NewUserClient(userServiceConn, log)
 	tokenManager := auth.NewTokenManager(cfg.JWT.Secret, cfg.JWT.Secret, cfg.JWT.AccessExpiresAt, cfg.JWT.RefreshExpiresAt, log)
