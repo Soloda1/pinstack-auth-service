@@ -2,11 +2,11 @@ package auth_grpc_test
 
 import (
 	"context"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	auth_grpc "pinstack-auth-service/internal/delivery/grpc/auth"
 	"testing"
 
 	"pinstack-auth-service/internal/auth"
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/mocks"
 
@@ -191,7 +191,7 @@ func TestAuthGRPCService_Refresh(t *testing.T) {
 		mockTokenService.ExpectedCalls = nil
 		mockTokenService.Calls = nil
 
-		mockTokenService.On("Refresh", mock.Anything, "expired-refresh-token").Return(nil, custom_errors.ErrExpiredToken)
+		mockTokenService.On("Refresh", mock.Anything, "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
 		req := &pb.RefreshRequest{RefreshToken: "expired-refresh-token"}
 		resp, err := service.Refresh(context.Background(), req)

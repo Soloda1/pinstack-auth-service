@@ -2,13 +2,12 @@ package auth_repository_test
 
 import (
 	"context"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
 	auth_repository "pinstack-auth-service/internal/repository/token"
@@ -243,14 +242,14 @@ func TestGetExpiredRefreshToken(t *testing.T) {
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
-		ExpiresAt: time.Now().Add(-time.Hour), // Истекший токен
+		ExpiresAt: time.Now().Add(-time.Hour),
 	}
 
 	err := repo.CreateRefreshToken(ctx, token)
 	require.NoError(t, err)
 
 	_, err = repo.GetRefreshToken(ctx, token.Token)
-	assert.Equal(t, custom_errors.ErrExpiredToken.Error(), err.Error())
+	assert.Equal(t, custom_errors.ErrTokenExpired.Error(), err.Error())
 }
 
 func TestGetExpiredRefreshTokenByJTI(t *testing.T) {
@@ -269,7 +268,7 @@ func TestGetExpiredRefreshTokenByJTI(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = repo.GetRefreshTokenByJTI(ctx, token.JTI)
-	assert.Equal(t, custom_errors.ErrExpiredToken.Error(), err.Error())
+	assert.Equal(t, custom_errors.ErrTokenExpired.Error(), err.Error())
 }
 
 func TestDeleteExpiredTokensWithMixedTokens(t *testing.T) {

@@ -2,7 +2,7 @@ package auth_grpc
 
 import (
 	"context"
-	"pinstack-auth-service/internal/custom_errors"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/auth/v1"
 	"google.golang.org/grpc/codes"

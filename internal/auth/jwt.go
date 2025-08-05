@@ -3,8 +3,8 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/custom_errors"
 	"time"
 
 	"pinstack-auth-service/internal/logger"
@@ -113,7 +113,7 @@ func (m *Manager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			m.logger.Debug("refresh token expired", slog.String("token", tokenString))
-			return nil, custom_errors.ErrExpiredToken
+			return nil, custom_errors.ErrTokenExpired
 		}
 		m.logger.Error("failed to parse refresh token", slog.String("error", err.Error()))
 		return nil, custom_errors.ErrInvalidToken

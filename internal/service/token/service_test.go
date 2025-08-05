@@ -2,6 +2,7 @@ package auth_service_test
 
 import (
 	"context"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"testing"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"pinstack-auth-service/internal/auth"
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
 	auth_service "pinstack-auth-service/internal/service/token"
@@ -340,11 +340,11 @@ func TestService_Refresh(t *testing.T) {
 		log := logger.New("test")
 		service := auth_service.NewService(repo, tokenManager, userClient, log)
 
-		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrExpiredToken)
+		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
 		gotTokens, err := service.Refresh(context.Background(), "expired-refresh-token")
 		assert.Error(t, err)
-		assert.Equal(t, custom_errors.ErrExpiredToken, err)
+		assert.Equal(t, custom_errors.ErrTokenExpired, err)
 		assert.Nil(t, gotTokens)
 	})
 
@@ -437,7 +437,7 @@ func TestService_Logout(t *testing.T) {
 		log := logger.New("test")
 		service := auth_service.NewService(repo, tokenManager, userClient, log)
 
-		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrExpiredToken)
+		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
 		err := service.Logout(context.Background(), "expired-refresh-token")
 		assert.NoError(t, err)

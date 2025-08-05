@@ -3,8 +3,8 @@ package auth_repository
 import (
 	"context"
 	"errors"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
 	"time"
@@ -93,7 +93,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.
 		r.log.Debug("Refresh token expired",
 			slog.String("token", token),
 			slog.Time("expires_at", refreshToken.ExpiresAt))
-		return nil, custom_errors.ErrExpiredToken
+		return nil, custom_errors.ErrTokenExpired
 	}
 
 	return &refreshToken, nil
@@ -132,7 +132,7 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*mod
 		r.log.Debug("Refresh token expired",
 			slog.String("jti", jti),
 			slog.Time("expires_at", refreshToken.ExpiresAt))
-		return nil, custom_errors.ErrExpiredToken
+		return nil, custom_errors.ErrTokenExpired
 	}
 
 	return &refreshToken, nil
