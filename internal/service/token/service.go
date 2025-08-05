@@ -3,10 +3,10 @@ package auth_service
 import (
 	"context"
 	"errors"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
 	"pinstack-auth-service/internal/auth"
 	user_client "pinstack-auth-service/internal/clients/user"
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
 	auth_repository "pinstack-auth-service/internal/repository/token"
@@ -181,7 +181,7 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error) {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
-		if errors.Is(err, custom_errors.ErrInvalidToken) || errors.Is(err, custom_errors.ErrExpiredToken) {
+		if errors.Is(err, custom_errors.ErrInvalidToken) || errors.Is(err, custom_errors.ErrTokenExpired) {
 			return nil, err
 		}
 		return nil, err
@@ -190,8 +190,8 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 	_, err = s.repo.GetRefreshTokenByJTI(ctx, claims.JTI)
 	if err != nil {
 		s.log.Error("Failed to get refresh token", slog.String("error", err.Error()), slog.String("jti", claims.JTI))
-		if errors.Is(err, custom_errors.ErrExpiredToken) {
-			return nil, custom_errors.ErrExpiredToken
+		if errors.Is(err, custom_errors.ErrTokenExpired) {
+			return nil, custom_errors.ErrTokenExpired
 		}
 		if errors.Is(err, custom_errors.ErrInvalidToken) {
 			return nil, custom_errors.ErrInvalidToken
@@ -261,7 +261,7 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		s.log.Error("Failed to parse refresh token", slog.String("error", err.Error()))
-		if errors.Is(err, custom_errors.ErrExpiredToken) {
+		if errors.Is(err, custom_errors.ErrTokenExpired) {
 			return nil
 		}
 		return custom_errors.ErrInvalidToken

@@ -3,8 +3,8 @@ package auth_grpc
 import (
 	"context"
 	"errors"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/model"
 	"pinstack-auth-service/internal/utils"
 

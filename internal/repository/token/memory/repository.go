@@ -2,11 +2,11 @@ package memory
 
 import (
 	"context"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"pinstack-auth-service/internal/custom_errors"
 	"pinstack-auth-service/internal/logger"
 	"pinstack-auth-service/internal/model"
 )
@@ -60,7 +60,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.
 		r.log.Debug("Refresh token expired",
 			"token", token,
 			"expires_at", t.ExpiresAt)
-		return nil, custom_errors.ErrExpiredToken
+		return nil, custom_errors.ErrTokenExpired
 	}
 
 	return t, nil
@@ -76,7 +76,7 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*mod
 				r.log.Debug("Refresh token expired",
 					"jti", jti,
 					"expires_at", t.ExpiresAt)
-				return nil, custom_errors.ErrExpiredToken
+				return nil, custom_errors.ErrTokenExpired
 			}
 			return t, nil
 		}

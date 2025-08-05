@@ -2,7 +2,7 @@ package auth_grpc
 
 import (
 	"context"
-	"pinstack-auth-service/internal/custom_errors"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/auth/v1"
 	"google.golang.org/grpc/codes"
@@ -27,7 +27,7 @@ func (s *AuthGRPCService) Refresh(ctx context.Context, req *pb.RefreshRequest) (
 	tokens, err := s.tokenService.Refresh(ctx, req.RefreshToken)
 	if err != nil {
 		switch err {
-		case custom_errors.ErrExpiredToken:
+		case custom_errors.ErrTokenExpired:
 			s.log.Warn("Token expired")
 			return nil, status.Error(codes.Unauthenticated, err.Error())
 		case custom_errors.ErrInvalidToken:
