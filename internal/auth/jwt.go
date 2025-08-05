@@ -113,7 +113,7 @@ func (m *Manager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			m.logger.Debug("refresh token expired", slog.String("token", tokenString))
-			return nil, custom_errors.ErrInvalidToken
+			return nil, custom_errors.ErrTokenExpired
 		}
 		m.logger.Error("failed to parse refresh token", slog.String("error", err.Error()))
 		return nil, custom_errors.ErrInvalidToken
