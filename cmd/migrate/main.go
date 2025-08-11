@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"os"
+	"pinstack-auth-service/internal/infrastructure/config"
 
-	"pinstack-auth-service/config"
 	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/infrastructure/outbound/migrator"
 )
