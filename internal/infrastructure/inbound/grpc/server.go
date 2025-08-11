@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	ports "pinstack-auth-service/internal/domain/ports"
-	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
-	"pinstack-auth-service/internal/infrastructure/middleware"
+	ports "pinstack-auth-service/internal/domain/ports/output"
+	auth_grpc "pinstack-auth-service/internal/infrastructure/inbound/grpc/auth"
+	"pinstack-auth-service/internal/infrastructure/inbound/middleware"
 	"runtime/debug"
 
 	"google.golang.org/grpc/codes"

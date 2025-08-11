@@ -13,7 +13,7 @@ import (
 
 	. "pinstack-auth-service/internal/application/service"
 	models "pinstack-auth-service/internal/domain/models"
-	ports "pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/input"
 	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/utils"
 	"pinstack-auth-service/mocks"

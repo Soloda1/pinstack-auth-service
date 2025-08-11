@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"pinstack-auth-service/internal/domain/models"
-	auth "pinstack-auth-service/internal/domain/ports"
+	auth "pinstack-auth-service/internal/domain/ports/output"
 	"pinstack-auth-service/internal/utils"
 	"regexp"
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"pinstack-auth-service/internal/domain/models"
-	ports "pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/output"
 	"time"
 
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"

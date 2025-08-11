@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	auth "pinstack-auth-service/internal/domain/models"
-	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
+	auth_grpc "pinstack-auth-service/internal/infrastructure/inbound/grpc/auth"
 	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/mocks"
 )

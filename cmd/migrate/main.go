@@ -6,7 +6,7 @@ import (
 
 	"pinstack-auth-service/config"
 	"pinstack-auth-service/internal/infrastructure/logger"
-	"pinstack-auth-service/internal/infrastructure/migrator"
+	"pinstack-auth-service/internal/infrastructure/outbound/migrator"
 )
 
 func main() {

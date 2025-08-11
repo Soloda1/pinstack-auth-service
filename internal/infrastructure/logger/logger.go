@@ -3,7 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
-	ports "pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/output"
 )
 
 const (

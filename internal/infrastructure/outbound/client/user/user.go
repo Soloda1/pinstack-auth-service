@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"pinstack-auth-service/internal/domain/models"
-	"pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/output"
 
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 

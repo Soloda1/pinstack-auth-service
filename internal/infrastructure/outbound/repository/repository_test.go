@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"pinstack-auth-service/internal/domain/models"
-	auth_repository "pinstack-auth-service/internal/domain/ports"
+	auth_repository "pinstack-auth-service/internal/domain/ports/output"
 	"pinstack-auth-service/internal/infrastructure/logger"
-	memory "pinstack-auth-service/internal/infrastructure/repository/memory"
+	memory "pinstack-auth-service/internal/infrastructure/outbound/repository/memory"
 )
 
 func setupTest(t *testing.T) (auth_repository.TokenRepository, func()) {

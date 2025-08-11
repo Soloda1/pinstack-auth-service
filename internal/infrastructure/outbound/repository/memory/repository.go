@@ -9,7 +9,7 @@ import (
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	"pinstack-auth-service/internal/domain/models"
-	ports "pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/output"
 )
 
 type Repository struct {

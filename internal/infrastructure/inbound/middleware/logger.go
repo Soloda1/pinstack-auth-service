@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"log/slog"
-	ports "pinstack-auth-service/internal/domain/ports"
+	ports "pinstack-auth-service/internal/domain/ports/output"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
