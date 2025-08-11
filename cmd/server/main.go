@@ -9,13 +9,13 @@ import (
 	"os"
 	"os/signal"
 	"pinstack-auth-service/config"
-	"pinstack-auth-service/internal/auth"
-	user_client "pinstack-auth-service/internal/clients/user"
-	delivery_grpc "pinstack-auth-service/internal/delivery/grpc"
-	auth_grpc "pinstack-auth-service/internal/delivery/grpc/auth"
-	"pinstack-auth-service/internal/logger"
-	token_repository "pinstack-auth-service/internal/repository/token/postgres"
-	token_service "pinstack-auth-service/internal/service/token"
+	token_service "pinstack-auth-service/internal/application/service"
+	authManager "pinstack-auth-service/internal/infrastructure/auth"
+	user "pinstack-auth-service/internal/infrastructure/client/user"
+	delivery_grpc "pinstack-auth-service/internal/infrastructure/grpc"
+	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
+	"pinstack-auth-service/internal/infrastructure/logger"
+	token_repository "pinstack-auth-service/internal/infrastructure/repository/postgres"
 	"syscall"
 	"time"
 
@@ -63,8 +63,8 @@ func main() {
 		}
 	}()
 
-	userClient := user_client.NewUserClient(userServiceConn, log)
-	tokenManager := auth.NewTokenManager(cfg.JWT.Secret, cfg.JWT.Secret, cfg.JWT.AccessExpiresAt, cfg.JWT.RefreshExpiresAt, log)
+	userClient := user.NewUserClient(userServiceConn, log)
+	tokenManager := authManager.NewTokenManager(cfg.JWT.Secret, cfg.JWT.Secret, cfg.JWT.AccessExpiresAt, cfg.JWT.RefreshExpiresAt, log)
 	tokenRepo := token_repository.NewTokenRepository(pool, log)
 	tokenService := token_service.NewService(tokenRepo, tokenManager, userClient, log)
 
