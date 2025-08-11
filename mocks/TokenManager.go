@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "pinstack-auth-service/internal/domain/model"
+	model "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 )

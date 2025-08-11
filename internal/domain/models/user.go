@@ -1,4 +1,4 @@
-package model
+package models
 
 import (
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/user/v1"

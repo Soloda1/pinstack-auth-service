@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
+	"pinstack-auth-service/internal/domain/models"
+	"pinstack-auth-service/internal/infrastructure/logger"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -26,7 +26,7 @@ func NewTokenRepository(pool *pgxpool.Pool, log *logger.Logger) *Repository {
 	}
 }
 
-func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
+func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) error {
 	args := pgx.NamedArgs{
 		"token":      token.Token,
 		"user_id":    token.UserID,
@@ -60,8 +60,8 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.Refres
 	return nil
 }
 
-func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
-	var refreshToken model.RefreshToken
+func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*models.RefreshToken, error) {
+	var refreshToken models.RefreshToken
 	args := pgx.NamedArgs{
 		"token": token,
 	}
@@ -99,8 +99,8 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.
 	return &refreshToken, nil
 }
 
-func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
-	var refreshToken model.RefreshToken
+func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*models.RefreshToken, error) {
+	var refreshToken models.RefreshToken
 	args := pgx.NamedArgs{
 		"jti": jti,
 	}

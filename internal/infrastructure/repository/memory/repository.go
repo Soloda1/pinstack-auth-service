@@ -7,12 +7,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
+	"pinstack-auth-service/internal/domain/models"
+	"pinstack-auth-service/internal/infrastructure/logger"
 )
 
 type Repository struct {
-	tokens map[string]*model.RefreshToken
+	tokens map[string]*models.RefreshToken
 	mu     sync.RWMutex
 	log    *logger.Logger
 	nextID int64
@@ -20,13 +20,13 @@ type Repository struct {
 
 func NewTokenRepository(log *logger.Logger) *Repository {
 	return &Repository{
-		tokens: make(map[string]*model.RefreshToken),
+		tokens: make(map[string]*models.RefreshToken),
 		log:    log,
 		nextID: 1,
 	}
 }
 
-func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
+func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -46,7 +46,7 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, token *model.Refres
 	return nil
 }
 
-func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*models.RefreshToken, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -66,7 +66,7 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*model.
 	return t, nil
 }
 
-func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
+func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*models.RefreshToken, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

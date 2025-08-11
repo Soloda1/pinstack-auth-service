@@ -3,26 +3,19 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
 	"time"
 
-	"pinstack-auth-service/internal/logger"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
+
+	model "pinstack-auth-service/internal/domain/models"
+	"pinstack-auth-service/internal/infrastructure/logger"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
-type TokenPair struct {
-	AccessToken  string
-	RefreshToken string
-}
-
-type TokenClaims struct {
-	UserID int64  `json:"user_id"`
-	JTI    string `json:"jti"`
-	jwt.RegisteredClaims
-}
+// Token types are defined in domain/models
 
 type Manager struct {
 	accessSecretKey  []byte
@@ -42,7 +35,7 @@ func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refres
 	}
 }
 
-func (m *Manager) NewJWT(userID int64) (*TokenPair, error) {
+func (m *Manager) NewJWT(userID int64) (*model.TokenPair, error) {
 	m.logger.Debug("generating new JWT pair", slog.Int64("user_id", userID))
 
 	jti, err := generateJTI()
@@ -68,14 +61,14 @@ func (m *Manager) NewJWT(userID int64) (*TokenPair, error) {
 	}
 
 	m.logger.Debug("successfully generated JWT pair", slog.Int64("user_id", userID))
-	return &TokenPair{
+	return &model.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
 func (m *Manager) createAccessToken(userID int64) (string, error) {
-	claims := TokenClaims{
+	claims := model.TokenClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.accessTTL)),
@@ -88,7 +81,7 @@ func (m *Manager) createAccessToken(userID int64) (string, error) {
 }
 
 func (m *Manager) createRefreshToken(userID int64, jti string) (string, error) {
-	claims := TokenClaims{
+	claims := model.TokenClaims{
 		UserID: userID,
 		JTI:    jti,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -101,8 +94,8 @@ func (m *Manager) createRefreshToken(userID int64, jti string) (string, error) {
 	return token.SignedString(m.refreshSecretKey)
 }
 
-func (m *Manager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (m *Manager) ParseRefreshToken(tokenString string) (*model.TokenClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &model.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			m.logger.Warn("unexpected signing method", slog.String("alg", fmt.Sprintf("%v", token.Header["alg"])))
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -119,7 +112,7 @@ func (m *Manager) ParseRefreshToken(tokenString string) (*TokenClaims, error) {
 		return nil, custom_errors.ErrInvalidToken
 	}
 
-	claims, ok := token.Claims.(*TokenClaims)
+	claims, ok := token.Claims.(*model.TokenClaims)
 	if !ok {
 		m.logger.Error("invalid token claims")
 		return nil, custom_errors.ErrInvalidToken

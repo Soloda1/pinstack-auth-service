@@ -1,30 +1,30 @@
-package auth_service_test
+package service_test
 
 import (
 	"context"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"pinstack-auth-service/internal/auth"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
-	auth_service "pinstack-auth-service/internal/service/token"
+	. "pinstack-auth-service/internal/application/service"
+	models "pinstack-auth-service/internal/domain/models"
+	ports "pinstack-auth-service/internal/domain/ports"
+	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/utils"
 	"pinstack-auth-service/mocks"
 )
 
-func setupTest(t *testing.T) (auth_service.TokenService, *mocks.TokenRepository, *mocks.UserClient, *mocks.TokenManager, func()) {
+func setupTest(t *testing.T) (ports.TokenService, *mocks.TokenRepository, *mocks.UserClient, *mocks.TokenManager, func()) {
 	mockUserClient := mocks.NewUserClient(t)
 	mockTokenManager := mocks.NewTokenManager(t)
 	log := logger.New("test")
 	repo := mocks.NewTokenRepository(t)
-	service := auth_service.NewService(repo, mockTokenManager, mockUserClient, log)
+	service := NewService(repo, mockTokenManager, mockUserClient, log)
 	return service, repo, mockUserClient, mockTokenManager, func() {}
 }
 
@@ -42,11 +42,11 @@ func TestService_Login(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		user := &model.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
+		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		mockUserClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
-		tokens := &auth.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
+		tokens := &models.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
 		mockTokenManager.On("NewJWT", int64(1)).Return(tokens, nil)
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		mockTokenManager.On("ParseRefreshToken", "refresh-token").Return(claims, nil)
 		repo.On("CreateRefreshToken", mock.Anything, mock.Anything).Return(nil)
 
@@ -77,7 +77,7 @@ func TestService_Login(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		user := &model.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
+		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		mockUserClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
 
 		gotTokens, err := service.Login(context.Background(), "test@example.com", "wrongpassword")
@@ -106,7 +106,7 @@ func TestService_Login(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		user := &model.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
+		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		mockUserClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
 		mockTokenManager.On("NewJWT", int64(1)).Return(nil, custom_errors.ErrInternalServiceError)
 
@@ -121,15 +121,15 @@ func TestService_Login(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
+		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		userClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
-		tokens := &auth.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
+		tokens := &models.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
 		tokenManager.On("NewJWT", int64(1)).Return(tokens, nil)
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "refresh-token").Return(claims, nil)
-		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *model.RefreshToken) bool {
+		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *models.RefreshToken) bool {
 			return token.JTI == "test-jti"
 		})).Return(custom_errors.ErrOperationNotAllowed)
 
@@ -149,19 +149,19 @@ func TestService_Register(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
-		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(user, nil)
-		tokens := &auth.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
+		user := &models.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
+		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(user, nil)
+		tokens := &models.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
 		tokenManager.On("NewJWT", int64(1)).Return(tokens, nil)
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "refresh-token").Return(claims, nil)
-		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *model.RefreshToken) bool {
+		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *models.RefreshToken) bool {
 			return token.JTI == "test-jti"
 		})).Return(nil)
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -178,7 +178,7 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "invalid-email",
 			Password: "password123",
@@ -194,7 +194,7 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "short",
@@ -210,9 +210,9 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUsernameExists).Once()
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrUsernameExists).Once()
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -228,9 +228,9 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrEmailExists).Once()
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrEmailExists).Once()
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -246,9 +246,9 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrInvalidUsername).Once()
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrInvalidUsername).Once()
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -264,9 +264,9 @@ func TestService_Register(t *testing.T) {
 		mockTokenManager.ExpectedCalls = nil
 		mockTokenManager.Calls = nil
 
-		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrExternalServiceError).Once()
+		mockUserClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrExternalServiceError).Once()
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -281,19 +281,19 @@ func TestService_Register(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
-		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*model.User")).Return(user, nil)
-		tokens := &auth.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
+		user := &models.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
+		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(user, nil)
+		tokens := &models.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
 		tokenManager.On("NewJWT", int64(1)).Return(tokens, nil)
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "refresh-token").Return(claims, nil)
-		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *model.RefreshToken) bool {
+		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *models.RefreshToken) bool {
 			return token.JTI == "test-jti"
 		})).Return(custom_errors.ErrOperationNotAllowed)
 
-		gotTokens, err := service.Register(context.Background(), &model.User{
+		gotTokens, err := service.Register(context.Background(), &models.User{
 			Username: "testuser",
 			Email:    "test@example.com",
 			Password: "password123",
@@ -310,18 +310,18 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
-		repo.On("GetRefreshTokenByJTI", mock.Anything, "test-jti").Return(&model.RefreshToken{UserID: 1, Token: "valid-refresh-token", JTI: "test-jti", ExpiresAt: time.Now().Add(time.Hour)}, nil)
-		user := &model.User{ID: 1, Username: "testuser", Email: "test@example.com"}
+		repo.On("GetRefreshTokenByJTI", mock.Anything, "test-jti").Return(&models.RefreshToken{UserID: 1, Token: "valid-refresh-token", JTI: "test-jti", ExpiresAt: time.Now().Add(time.Hour)}, nil)
+		user := &models.User{ID: 1, Username: "testuser", Email: "test@example.com"}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
-		tokens := &auth.TokenPair{AccessToken: "new-access-token", RefreshToken: "new-refresh-token"}
+		tokens := &models.TokenPair{AccessToken: "new-access-token", RefreshToken: "new-refresh-token"}
 		tokenManager.On("NewJWT", int64(1)).Return(tokens, nil)
-		newClaims := &auth.TokenClaims{UserID: 1, JTI: "new-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		newClaims := &models.TokenClaims{UserID: 1, JTI: "new-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "new-refresh-token").Return(newClaims, nil)
-		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *model.RefreshToken) bool {
+		repo.On("CreateRefreshToken", mock.Anything, mock.MatchedBy(func(token *models.RefreshToken) bool {
 			return token.JTI == "new-jti"
 		})).Return(nil)
 		repo.On("DeleteRefreshTokenByJTI", mock.Anything, "test-jti").Return(nil)
@@ -338,7 +338,7 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
@@ -353,7 +353,7 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		tokenManager.On("ParseRefreshToken", "invalid-refresh-token").Return(nil, custom_errors.ErrInvalidToken)
 
@@ -368,11 +368,11 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
-		repo.On("GetRefreshTokenByJTI", mock.Anything, "test-jti").Return(&model.RefreshToken{UserID: 1, Token: "valid-refresh-token", JTI: "test-jti", ExpiresAt: time.Now().Add(time.Hour)}, nil)
+		repo.On("GetRefreshTokenByJTI", mock.Anything, "test-jti").Return(&models.RefreshToken{UserID: 1, Token: "valid-refresh-token", JTI: "test-jti", ExpiresAt: time.Now().Add(time.Hour)}, nil)
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(nil, custom_errors.ErrUserNotFound)
 
 		gotTokens, err := service.Refresh(context.Background(), "valid-refresh-token")
@@ -386,7 +386,7 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(nil, custom_errors.ErrExternalServiceError)
 
@@ -401,9 +401,9 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
 		repo.On("GetRefreshTokenByJTI", mock.Anything, "test-jti").Return(nil, custom_errors.ErrOperationNotAllowed)
 
@@ -420,9 +420,9 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		claims := &auth.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
+		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
 		repo.On("DeleteRefreshTokenByJTI", mock.Anything, "test-jti").Return(nil)
 
@@ -435,7 +435,7 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
@@ -448,7 +448,7 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		tokenManager.On("ParseRefreshToken", "invalid-refresh-token").Return(nil, custom_errors.ErrInvalidToken)
 
@@ -467,9 +467,9 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Password: hashedOldPassword}
+		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
 		userClient.On("UpdatePassword", mock.Anything, int64(1), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 		repo.On("DeleteUserRefreshTokens", mock.Anything, int64(1)).Return(nil)
@@ -483,7 +483,7 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		err := service.UpdatePassword(context.Background(), 1, "oldpass", "short")
 		assert.Error(t, err)
@@ -495,7 +495,7 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		userClient.On("GetUser", mock.Anything, int64(999)).Return(nil, custom_errors.ErrUserNotFound)
 
@@ -509,9 +509,9 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Password: hashedOldPassword}
+		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
 
 		err := service.UpdatePassword(context.Background(), 1, "wrongpassword", "newpassword123")
@@ -524,7 +524,7 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(nil, custom_errors.ErrExternalServiceError)
 
@@ -538,9 +538,9 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Password: hashedOldPassword}
+		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
 		userClient.On("UpdatePassword", mock.Anything, int64(1), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(custom_errors.ErrExternalServiceError)
 
@@ -554,9 +554,9 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := auth_service.NewService(repo, tokenManager, userClient, log)
+		service := NewService(repo, tokenManager, userClient, log)
 
-		user := &model.User{ID: 1, Password: hashedOldPassword}
+		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
 		userClient.On("UpdatePassword", mock.Anything, int64(1), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
 		repo.On("DeleteUserRefreshTokens", mock.Anything, int64(1)).Return(custom_errors.ErrOperationNotAllowed)

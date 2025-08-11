@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc/status"
 	"log/slog"
 	"net"
-	auth_grpc "pinstack-auth-service/internal/delivery/grpc/auth"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/middleware"
+	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
+	"pinstack-auth-service/internal/infrastructure/logger"
+	"pinstack-auth-service/internal/infrastructure/middleware"
 	"runtime/debug"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -57,7 +57,7 @@ func (s *Server) Run() error {
 
 	pb.RegisterAuthServiceServer(s.server, s.authGRPCService)
 
-	s.log.Info("Starting gRPC server", slog.Int("port", s.port))
+	s.log.Info("Starting gRPC server", slog.Int("ports", s.port))
 	return s.server.Serve(lis)
 }
 

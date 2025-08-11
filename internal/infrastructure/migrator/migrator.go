@@ -2,7 +2,7 @@ package migrator
 
 import (
 	"errors"
-	"pinstack-auth-service/internal/logger"
+	"pinstack-auth-service/internal/infrastructure/logger"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"

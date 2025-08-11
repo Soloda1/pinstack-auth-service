@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	model "pinstack-auth-service/internal/domain/model"
+	model "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -225,7 +225,7 @@ type TokenService_Register_Call struct {
 
 // Register is a helper method to define mock.On call
 //   - ctx context.Context
-//   - user *model.User
+//   - user *models.User
 func (_e *TokenService_Expecter) Register(ctx interface{}, user interface{}) *TokenService_Register_Call {
 	return &TokenService_Register_Call{Call: _e.mock.On("Register", ctx, user)}
 }

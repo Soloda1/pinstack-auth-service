@@ -2,20 +2,20 @@ package auth_grpc_test
 
 import (
 	"context"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
-	auth_grpc "pinstack-auth-service/internal/delivery/grpc/auth"
 	"testing"
 
-	"pinstack-auth-service/internal/auth"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/mocks"
-
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/auth/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	auth "pinstack-auth-service/internal/domain/models"
+	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
+	"pinstack-auth-service/internal/infrastructure/logger"
+	"pinstack-auth-service/mocks"
 )
 
 func setupTest(t *testing.T) (*auth_grpc.AuthGRPCService, *mocks.TokenService, func()) {
@@ -99,7 +99,7 @@ func TestAuthGRPCService_Register(t *testing.T) {
 		mockTokenService.Calls = nil
 
 		tokens := &auth.TokenPair{AccessToken: "access-token", RefreshToken: "refresh-token"}
-		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(tokens, nil)
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*models.User")).Return(tokens, nil)
 
 		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
 		resp, err := service.Register(context.Background(), req)
@@ -113,7 +113,7 @@ func TestAuthGRPCService_Register(t *testing.T) {
 		mockTokenService.ExpectedCalls = nil
 		mockTokenService.Calls = nil
 
-		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrUsernameExists)
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrUsernameExists)
 
 		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
 		resp, err := service.Register(context.Background(), req)
@@ -128,7 +128,7 @@ func TestAuthGRPCService_Register(t *testing.T) {
 		mockTokenService.ExpectedCalls = nil
 		mockTokenService.Calls = nil
 
-		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrEmailExists)
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrEmailExists)
 
 		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
 		resp, err := service.Register(context.Background(), req)
@@ -156,7 +156,7 @@ func TestAuthGRPCService_Register(t *testing.T) {
 		mockTokenService.ExpectedCalls = nil
 		mockTokenService.Calls = nil
 
-		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*model.User")).Return(nil, custom_errors.ErrInternalServiceError)
+		mockTokenService.On("Register", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil, custom_errors.ErrInternalServiceError)
 
 		req := &pb.RegisterRequest{Username: "testuser", Email: "test@example.com", Password: "password123"}
 		resp, err := service.Register(context.Background(), req)

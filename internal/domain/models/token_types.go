@@ -1,4 +1,4 @@
-package auth
+package models
 
 import (
 	"github.com/golang-jwt/jwt/v5"
@@ -10,8 +10,7 @@ type TokenPair struct {
 }
 
 type TokenClaims struct {
-	UserID int64  `json:`
-	JTI    string `json:`
+	UserID int64  `json:"user_id"`
+	JTI    string `json:"jti"`
 	jwt.RegisteredClaims
 }
-

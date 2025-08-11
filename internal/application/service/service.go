@@ -1,29 +1,28 @@
-package auth_service
+package service
 
 import (
 	"context"
 	"errors"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/auth"
-	user_client "pinstack-auth-service/internal/clients/user"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
-	auth_repository "pinstack-auth-service/internal/repository/token"
+	"pinstack-auth-service/internal/domain/models"
+	auth "pinstack-auth-service/internal/domain/ports"
+	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/utils"
 	"regexp"
+
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 )
 
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 
 type Service struct {
-	repo         auth_repository.TokenRepository
-	userClient   user_client.UserClient
+	repo         auth.TokenRepository
+	userClient   auth.UserClient
 	tokenManager auth.TokenManager
 	log          *logger.Logger
 }
 
-func NewService(repo auth_repository.TokenRepository, tokenManager auth.TokenManager, userClient user_client.UserClient, log *logger.Logger) *Service {
+func NewService(repo auth.TokenRepository, tokenManager auth.TokenManager, userClient auth.UserClient, log *logger.Logger) *Service {
 	return &Service{
 		repo:         repo,
 		log:          log,
@@ -32,9 +31,9 @@ func NewService(repo auth_repository.TokenRepository, tokenManager auth.TokenMan
 	}
 }
 
-func (s *Service) Login(ctx context.Context, login, password string) (*auth.TokenPair, error) {
+func (s *Service) Login(ctx context.Context, login, password string) (*models.TokenPair, error) {
 	isEmail := emailRegex.MatchString(login)
-	var user *model.User
+	var user *models.User
 	var err error
 
 	if isEmail {
@@ -80,7 +79,7 @@ func (s *Service) Login(ctx context.Context, login, password string) (*auth.Toke
 		return nil, custom_errors.ErrInternalServiceError
 	}
 
-	refreshToken := &model.RefreshToken{
+	refreshToken := &models.RefreshToken{
 		UserID:    user.ID,
 		Token:     tokens.RefreshToken,
 		JTI:       claims.JTI,
@@ -101,7 +100,7 @@ func (s *Service) Login(ctx context.Context, login, password string) (*auth.Toke
 	return tokens, nil
 }
 
-func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPair, error) {
+func (s *Service) Register(ctx context.Context, user *models.User) (*models.TokenPair, error) {
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		s.log.Debug("Invalid input data", slog.String("username", user.Username), slog.String("email", user.Email))
 		return nil, custom_errors.ErrInvalidInput
@@ -157,7 +156,7 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 		return nil, custom_errors.ErrInternalServiceError
 	}
 
-	refreshToken := &model.RefreshToken{
+	refreshToken := &models.RefreshToken{
 		UserID:    createdUser.ID,
 		Token:     tokens.RefreshToken,
 		JTI:       claims.JTI,
@@ -178,7 +177,7 @@ func (s *Service) Register(ctx context.Context, user *model.User) (*auth.TokenPa
 	return tokens, nil
 }
 
-func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.TokenPair, error) {
+func (s *Service) Refresh(ctx context.Context, refreshToken string) (*models.TokenPair, error) {
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		if errors.Is(err, custom_errors.ErrInvalidToken) || errors.Is(err, custom_errors.ErrTokenExpired) {
@@ -227,7 +226,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*auth.Token
 		return nil, custom_errors.ErrInternalServiceError
 	}
 
-	newRefreshToken := &model.RefreshToken{
+	newRefreshToken := &models.RefreshToken{
 		UserID:    user.ID,
 		Token:     tokens.RefreshToken,
 		JTI:       newClaims.JTI,

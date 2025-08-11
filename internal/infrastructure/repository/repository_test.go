@@ -1,17 +1,18 @@
-package auth_repository_test
+package repository_test
 
 import (
 	"context"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"testing"
 	"time"
 
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
-	auth_repository "pinstack-auth-service/internal/repository/token"
-	"pinstack-auth-service/internal/repository/token/memory"
+
+	"pinstack-auth-service/internal/domain/models"
+	auth_repository "pinstack-auth-service/internal/domain/ports"
+	"pinstack-auth-service/internal/infrastructure/logger"
+	memory "pinstack-auth-service/internal/infrastructure/repository/memory"
 )
 
 func setupTest(t *testing.T) (auth_repository.TokenRepository, func()) {
@@ -25,7 +26,7 @@ func TestCreateRefreshToken(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -43,7 +44,7 @@ func TestGetRefreshToken(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -71,7 +72,7 @@ func TestGetRefreshTokenByJTI(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -99,7 +100,7 @@ func TestDeleteRefreshToken(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -124,7 +125,7 @@ func TestDeleteRefreshTokenByJTI(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -149,13 +150,13 @@ func TestDeleteUserRefreshTokens(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token1 := &model.RefreshToken{
+	token1 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token-1",
 		JTI:       "test-jti-1",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	token2 := &model.RefreshToken{
+	token2 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token-2",
 		JTI:       "test-jti-2",
@@ -181,13 +182,13 @@ func TestDeleteExpiredTokens(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	validToken := &model.RefreshToken{
+	validToken := &models.RefreshToken{
 		UserID:    1,
 		Token:     "valid-token",
 		JTI:       "valid-jti",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	expiredToken := &model.RefreshToken{
+	expiredToken := &models.RefreshToken{
 		UserID:    2,
 		Token:     "expired-token",
 		JTI:       "expired-jti",
@@ -213,13 +214,13 @@ func TestCreateRefreshTokenWithDuplicateJTI(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token1 := &model.RefreshToken{
+	token1 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token-1",
 		JTI:       "test-jti",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	token2 := &model.RefreshToken{
+	token2 := &models.RefreshToken{
 		UserID:    2,
 		Token:     "test-token-2",
 		JTI:       "test-jti", // Тот же JTI
@@ -238,7 +239,7 @@ func TestGetExpiredRefreshToken(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -257,7 +258,7 @@ func TestGetExpiredRefreshTokenByJTI(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token := &model.RefreshToken{
+	token := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token",
 		JTI:       "test-jti",
@@ -276,19 +277,19 @@ func TestDeleteExpiredTokensWithMixedTokens(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	validToken := &model.RefreshToken{
+	validToken := &models.RefreshToken{
 		UserID:    1,
 		Token:     "valid-token",
 		JTI:       "valid-jti",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	expiredToken1 := &model.RefreshToken{
+	expiredToken1 := &models.RefreshToken{
 		UserID:    2,
 		Token:     "expired-token-1",
 		JTI:       "expired-jti-1",
 		ExpiresAt: time.Now().Add(-time.Hour),
 	}
-	expiredToken2 := &model.RefreshToken{
+	expiredToken2 := &models.RefreshToken{
 		UserID:    3,
 		Token:     "expired-token-2",
 		JTI:       "expired-jti-2",
@@ -321,19 +322,19 @@ func TestDeleteUserRefreshTokensWithMixedUsers(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	user1Token1 := &model.RefreshToken{
+	user1Token1 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "user1-token-1",
 		JTI:       "user1-jti-1",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	user1Token2 := &model.RefreshToken{
+	user1Token2 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "user1-token-2",
 		JTI:       "user1-jti-2",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	user2Token := &model.RefreshToken{
+	user2Token := &models.RefreshToken{
 		UserID:    2,
 		Token:     "user2-token",
 		JTI:       "user2-jti",
@@ -364,13 +365,13 @@ func TestDeleteRefreshTokenByJTIWithMultipleTokens(t *testing.T) {
 	defer cleanup()
 
 	ctx := context.Background()
-	token1 := &model.RefreshToken{
+	token1 := &models.RefreshToken{
 		UserID:    1,
 		Token:     "test-token-1",
 		JTI:       "test-jti-1",
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	token2 := &model.RefreshToken{
+	token2 := &models.RefreshToken{
 		UserID:    2,
 		Token:     "test-token-2",
 		JTI:       "test-jti-2",

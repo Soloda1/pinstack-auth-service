@@ -1,12 +1,13 @@
-package user_client
+package user
 
 import (
 	"context"
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
+	userport "pinstack-auth-service/internal/domain/ports"
 
-	"pinstack-auth-service/internal/logger"
-	"pinstack-auth-service/internal/model"
+	"pinstack-auth-service/internal/domain/models"
+	"pinstack-auth-service/internal/infrastructure/logger"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/user/v1"
 	"google.golang.org/grpc"
@@ -19,14 +20,14 @@ type userClient struct {
 	log    *logger.Logger
 }
 
-func NewUserClient(conn *grpc.ClientConn, log *logger.Logger) UserClient {
+func NewUserClient(conn *grpc.ClientConn, log *logger.Logger) userport.UserClient {
 	return &userClient{
 		client: pb.NewUserServiceClient(conn),
 		log:    log,
 	}
 }
 
-func (u userClient) GetUser(ctx context.Context, id int64) (*model.User, error) {
+func (u userClient) GetUser(ctx context.Context, id int64) (*models.User, error) {
 	u.log.Info("Getting user by ID", slog.Int64("id", id))
 	resp, err := u.client.GetUser(ctx, &pb.GetUserRequest{Id: id})
 	if err != nil {
@@ -39,10 +40,10 @@ func (u userClient) GetUser(ctx context.Context, id int64) (*model.User, error) 
 		return nil, custom_errors.ErrExternalServiceError
 	}
 	u.log.Info("Successfully got user", slog.Int64("id", id))
-	return model.UserFromProto(resp), nil
+	return models.UserFromProto(resp), nil
 }
 
-func (u userClient) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (u userClient) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	u.log.Info("Creating new user", slog.Any("user", user))
 	resp, err := u.client.CreateUser(ctx, &pb.CreateUserRequest{
 		Username:  user.Username,
@@ -77,10 +78,10 @@ func (u userClient) CreateUser(ctx context.Context, user *model.User) (*model.Us
 		return nil, custom_errors.ErrExternalServiceError
 	}
 	u.log.Info("Successfully created user", slog.Int64("id", resp.Id))
-	return model.UserFromProto(resp), nil
+	return models.UserFromProto(resp), nil
 }
 
-func (u userClient) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+func (u userClient) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	u.log.Info("Getting user by username", slog.String("username", username))
 	resp, err := u.client.GetUserByUsername(ctx, &pb.GetUserByUsernameRequest{Username: username})
 	if err != nil {
@@ -93,10 +94,10 @@ func (u userClient) GetUserByUsername(ctx context.Context, username string) (*mo
 		return nil, custom_errors.ErrExternalServiceError
 	}
 	u.log.Info("Successfully got user by username", slog.String("username", username))
-	return model.UserFromProto(resp), nil
+	return models.UserFromProto(resp), nil
 }
 
-func (u userClient) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+func (u userClient) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	u.log.Info("Getting user by email", slog.String("email", email))
 	resp, err := u.client.GetUserByEmail(ctx, &pb.GetUserByEmailRequest{Email: email})
 	if err != nil {
@@ -109,7 +110,7 @@ func (u userClient) GetUserByEmail(ctx context.Context, email string) (*model.Us
 		return nil, custom_errors.ErrExternalServiceError
 	}
 	u.log.Info("Successfully got user by email", slog.String("email", email))
-	return model.UserFromProto(resp), nil
+	return models.UserFromProto(resp), nil
 }
 
 func (u userClient) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {

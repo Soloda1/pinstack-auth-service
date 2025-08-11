@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	"pinstack-auth-service/internal/model"
+	"pinstack-auth-service/internal/domain/models"
 	"pinstack-auth-service/internal/utils"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/auth/v1"
@@ -38,7 +38,7 @@ func (s *AuthGRPCService) Register(ctx context.Context, req *pb.RegisterRequest)
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	user := &model.User{
+	user := &models.User{
 		Username:  req.Username,
 		Email:     req.Email,
 		Password:  req.Password,

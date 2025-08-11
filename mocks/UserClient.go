@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	model "pinstack-auth-service/internal/domain/model"
+	model "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -59,7 +59,7 @@ type UserClient_CreateUser_Call struct {
 
 // CreateUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - user *model.User
+//   - user *models.User
 func (_e *UserClient_Expecter) CreateUser(ctx interface{}, user interface{}) *UserClient_CreateUser_Call {
 	return &UserClient_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, user)}
 }

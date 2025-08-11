@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	model "pinstack-auth-service/internal/domain/model"
+	model "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -49,7 +49,7 @@ type TokenRepository_CreateRefreshToken_Call struct {
 
 // CreateRefreshToken is a helper method to define mock.On call
 //   - ctx context.Context
-//   - token *model.RefreshToken
+//   - token *models.RefreshToken
 func (_e *TokenRepository_Expecter) CreateRefreshToken(ctx interface{}, token interface{}) *TokenRepository_CreateRefreshToken_Call {
 	return &TokenRepository_CreateRefreshToken_Call{Call: _e.mock.On("CreateRefreshToken", ctx, token)}
 }
