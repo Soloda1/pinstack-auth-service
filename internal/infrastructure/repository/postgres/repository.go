@@ -3,11 +3,12 @@ package auth_repository
 import (
 	"context"
 	"errors"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
 	"pinstack-auth-service/internal/domain/models"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	ports "pinstack-auth-service/internal/domain/ports"
 	"time"
+
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -16,10 +17,10 @@ import (
 
 type Repository struct {
 	pool *pgxpool.Pool
-	log  *logger.Logger
+	log  ports.Logger
 }
 
-func NewTokenRepository(pool *pgxpool.Pool, log *logger.Logger) *Repository {
+func NewTokenRepository(pool *pgxpool.Pool, log ports.Logger) *Repository {
 	return &Repository{
 		pool: pool,
 		log:  log,

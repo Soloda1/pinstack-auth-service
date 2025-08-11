@@ -2,12 +2,11 @@ package user
 
 import (
 	"context"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"log/slog"
-	userport "pinstack-auth-service/internal/domain/ports"
-
 	"pinstack-auth-service/internal/domain/models"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	"pinstack-auth-service/internal/domain/ports"
+
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	pb "github.com/soloda1/pinstack-proto-definitions/gen/go/pinstack-proto-definitions/user/v1"
 	"google.golang.org/grpc"
@@ -17,10 +16,10 @@ import (
 
 type userClient struct {
 	client pb.UserServiceClient
-	log    *logger.Logger
+	log    ports.Logger
 }
 
-func NewUserClient(conn *grpc.ClientConn, log *logger.Logger) userport.UserClient {
+func NewUserClient(conn *grpc.ClientConn, log ports.Logger) ports.UserClient {
 	return &userClient{
 		client: pb.NewUserServiceClient(conn),
 		log:    log,

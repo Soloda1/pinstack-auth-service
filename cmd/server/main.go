@@ -14,7 +14,7 @@ import (
 	user "pinstack-auth-service/internal/infrastructure/client/user"
 	delivery_grpc "pinstack-auth-service/internal/infrastructure/grpc"
 	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	infraLogger "pinstack-auth-service/internal/infrastructure/logger"
 	token_repository "pinstack-auth-service/internal/infrastructure/repository/postgres"
 	"syscall"
 	"time"
@@ -34,7 +34,7 @@ func main() {
 		cfg.Database.Port,
 		cfg.Database.DbName)
 	ctx := context.Background()
-	log := logger.New(cfg.Env)
+	log := infraLogger.New(cfg.Env)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {

@@ -2,7 +2,7 @@ package migrator
 
 import (
 	"errors"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	ports "pinstack-auth-service/internal/domain/ports"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -11,10 +11,10 @@ import (
 
 type Migrator struct {
 	m   *migrate.Migrate
-	log *logger.Logger
+	log ports.Logger
 }
 
-func NewMigrator(migrationsPath, dsn string, log *logger.Logger) (*Migrator, error) {
+func NewMigrator(migrationsPath, dsn string, log ports.Logger) (*Migrator, error) {
 	m, err := migrate.New(
 		"file://"+migrationsPath,
 		dsn,

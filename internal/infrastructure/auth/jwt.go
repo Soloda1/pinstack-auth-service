@@ -9,7 +9,7 @@ import (
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 
 	model "pinstack-auth-service/internal/domain/models"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	ports "pinstack-auth-service/internal/domain/ports"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -22,10 +22,10 @@ type Manager struct {
 	refreshSecretKey []byte
 	accessTTL        time.Duration
 	refreshTTL       time.Duration
-	logger           *logger.Logger
+	logger           ports.Logger
 }
 
-func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refreshTTL time.Duration, logger *logger.Logger) *Manager {
+func NewTokenManager(accessSecretKey, refreshSecretKey string, accessTTL, refreshTTL time.Duration, logger ports.Logger) *Manager {
 	return &Manager{
 		accessSecretKey:  []byte(accessSecretKey),
 		refreshSecretKey: []byte(refreshSecretKey),

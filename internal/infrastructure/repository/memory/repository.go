@@ -2,23 +2,24 @@ package memory
 
 import (
 	"context"
-	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
+
 	"pinstack-auth-service/internal/domain/models"
-	"pinstack-auth-service/internal/infrastructure/logger"
+	ports "pinstack-auth-service/internal/domain/ports"
 )
 
 type Repository struct {
 	tokens map[string]*models.RefreshToken
 	mu     sync.RWMutex
-	log    *logger.Logger
+	log    ports.Logger
 	nextID int64
 }
 
-func NewTokenRepository(log *logger.Logger) *Repository {
+func NewTokenRepository(log ports.Logger) *Repository {
 	return &Repository{
 		tokens: make(map[string]*models.RefreshToken),
 		log:    log,

@@ -4,14 +4,15 @@ import (
 	"context"
 	"time"
 
+	"log/slog"
+	ports "pinstack-auth-service/internal/domain/ports"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
-	"log/slog"
-	"pinstack-auth-service/internal/infrastructure/logger"
 )
 
-func UnaryLoggerInterceptor(log *logger.Logger) grpc.UnaryServerInterceptor {
+func UnaryLoggerInterceptor(log ports.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},

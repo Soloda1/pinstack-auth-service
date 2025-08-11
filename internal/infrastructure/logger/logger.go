@@ -3,6 +3,7 @@ package logger
 import (
 	"log/slog"
 	"os"
+	ports "pinstack-auth-service/internal/domain/ports"
 )
 
 const (
@@ -35,4 +36,13 @@ func New(env string) *Logger {
 	}
 
 	return &Logger{log}
+}
+
+func (l *Logger) With(args ...slog.Attr) ports.Logger {
+	// Convert []slog.Attr to []any for slog.Logger.With
+	anyArgs := make([]any, 0, len(args))
+	for i := range args {
+		anyArgs = append(anyArgs, args[i])
+	}
+	return &Logger{l.Logger.With(anyArgs...)}
 }

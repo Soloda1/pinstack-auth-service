@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"pinstack-auth-service/internal/domain/models"
 	auth "pinstack-auth-service/internal/domain/ports"
-	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/utils"
 	"regexp"
 
@@ -19,10 +18,10 @@ type Service struct {
 	repo         auth.TokenRepository
 	userClient   auth.UserClient
 	tokenManager auth.TokenManager
-	log          *logger.Logger
+	log          auth.Logger
 }
 
-func NewService(repo auth.TokenRepository, tokenManager auth.TokenManager, userClient auth.UserClient, log *logger.Logger) *Service {
+func NewService(repo auth.TokenRepository, tokenManager auth.TokenManager, userClient auth.UserClient, log auth.Logger) *Service {
 	return &Service{
 		repo:         repo,
 		log:          log,

@@ -2,14 +2,15 @@ package delivery_grpc
 
 import (
 	"fmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"log/slog"
 	"net"
+	ports "pinstack-auth-service/internal/domain/ports"
 	auth_grpc "pinstack-auth-service/internal/infrastructure/grpc/auth"
-	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/infrastructure/middleware"
 	"runtime/debug"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -22,10 +23,10 @@ type Server struct {
 	server          *grpc.Server
 	address         string
 	port            int
-	log             *logger.Logger
+	log             ports.Logger
 }
 
-func NewServer(grpcServer *auth_grpc.AuthGRPCService, address string, port int, log *logger.Logger) *Server {
+func NewServer(grpcServer *auth_grpc.AuthGRPCService, address string, port int, log ports.Logger) *Server {
 	return &Server{
 		authGRPCService: grpcServer,
 		address:         address,
