@@ -1,4 +1,4 @@
-.PHONY: test test-unit test-integration test-user-integration clean build run docker-build setup-system-tests
+.PHONY: test test-unit test-integration test-user-integration clean build run docker-build setup-system-tests quick-test-local
 
 BINARY_NAME=auth-service
 DOCKER_IMAGE=pinstack-auth-service:latest
@@ -41,7 +41,7 @@ test-unit: check-go-version
 start-auth-infrastructure: setup-system-tests
 	@echo "🚀 Запуск полной инфраструктуры для интеграционных тестов..."
 	cd $(SYSTEM_TESTS_DIR) && \
-	docker compose -f docker-compose.test.yml up -d \
+	AUTH_SERVICE_CONTEXT=../pinstack-auth-service docker compose -f docker-compose.test.yml up -d \
 		user-db-test \
 		user-migrator-test \
 		user-service-test \
@@ -111,6 +111,20 @@ test-integration: test-auth-integration stop-auth-infrastructure
 # Все тесты
 test-all: fmt lint test-unit test-integration
 
+# Быстрый тест с локальным auth-service
+quick-test-local: setup-system-tests
+	@echo "⚡ Быстрый запуск тестов с локальным auth-service..."
+	cd $(SYSTEM_TESTS_DIR) && \
+	AUTH_SERVICE_CONTEXT=../pinstack-auth-service docker compose -f docker-compose.test.yml up -d \
+		user-db-test user-migrator-test user-service-test \
+		auth-db-test auth-migrator-test auth-service-test \
+		api-gateway-test
+	@echo "⏳ Ожидание готовности сервисов..."
+	@sleep 30
+	cd $(SYSTEM_TESTS_DIR) && \
+	go test -v -count=1 -timeout=5m ./internal/scenarios/integration/gateway_auth/...
+	$(MAKE) stop-auth-infrastructure
+
 # Логи сервисов
 logs-user:
 	cd $(SYSTEM_TESTS_DIR) && \
@@ -158,8 +172,15 @@ ci-local: test-all
 	@echo "🎉 Локальный CI завершен успешно!"
 
 # Быстрый тест (только запуск без пересборки)
-quick-test: start-auth-infrastructure
+quick-test: setup-system-tests
 	@echo "⚡ Быстрый запуск тестов без пересборки..."
+	cd $(SYSTEM_TESTS_DIR) && \
+	AUTH_SERVICE_CONTEXT=../pinstack-auth-service docker compose -f docker-compose.test.yml up -d \
+		user-db-test user-migrator-test user-service-test \
+		auth-db-test auth-migrator-test auth-service-test \
+		api-gateway-test
+	@echo "⏳ Ожидание готовности сервисов..."
+	@sleep 30
 	cd $(SYSTEM_TESTS_DIR) && \
 	go test -v -count=1 -timeout=5m ./internal/scenarios/integration/gateway_auth/...
 	$(MAKE) stop-auth-infrastructure

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "pinstack-auth-service/internal/application/service"
-	models "pinstack-auth-service/internal/domain/models"
+	"pinstack-auth-service/internal/domain/models"
 	ports "pinstack-auth-service/internal/domain/ports/input"
 	"pinstack-auth-service/internal/infrastructure/logger"
 	"pinstack-auth-service/internal/utils"
