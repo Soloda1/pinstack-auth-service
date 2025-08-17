@@ -84,6 +84,9 @@ jobs:
     - name: Install dependencies
       run: go mod download
 
+    - name: Create docker network
+      run: docker network create pinstack-test || true
+
     - name: Start Full Infrastructure for Integration Tests
       working-directory: pinstack-system-tests
       env:
