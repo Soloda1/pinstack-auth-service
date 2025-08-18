@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
+	prometheus_metrics "pinstack-auth-service/internal/infrastructure/outbound/metrics/prometheus"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/soloda1/pinstack-proto-definitions/custom_errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	prometheus_metrics "pinstack-auth-service/internal/infrastructure/outbound/metrics/prometheus"
 
 	. "pinstack-auth-service/internal/application/service"
 	"pinstack-auth-service/internal/domain/models"
@@ -124,7 +125,7 @@ func TestService_Login(t *testing.T) {
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
 		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
-		service := NewService(repo, mockTokenManager, mockUserClient, log, metrics)
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		userClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
