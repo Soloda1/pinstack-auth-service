@@ -1,4 +1,4 @@
-package ports
+package output
 
 import "pinstack-auth-service/internal/domain/models"
 
