@@ -68,6 +68,8 @@ func main() {
 
 	metricsProvider := prometheus_metrics.NewPrometheusMetricsProvider()
 
+	metricsProvider.SetServiceHealth(true)
+
 	tokenRepo := token_repository.NewTokenRepository(pool, log, metricsProvider)
 	tokenService := token_service.NewService(tokenRepo, tokenManager, userClient, log, metricsProvider)
 
