@@ -1,11 +1,11 @@
-package ports
+package output
 
 import (
 	"context"
 	"pinstack-auth-service/internal/domain/models"
 )
 
-//go:generate mockery --name UserClient --dir . --output ../../../mocks --outpkg mocks --with-expecter
+//go:generate mockery --name UserClient --dir . --output ../../../../mocks --outpkg mocks --with-expecter
 type UserClient interface {
 	GetUser(ctx context.Context, id int64) (*models.User, error)
 	CreateUser(ctx context.Context, user *models.User) (*models.User, error)

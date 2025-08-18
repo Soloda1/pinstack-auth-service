@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "pinstack-auth-service/internal/domain/models"
+	models "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -22,23 +22,23 @@ func (_m *TokenManager) EXPECT() *TokenManager_Expecter {
 }
 
 // NewJWT provides a mock function with given fields: userID
-func (_m *TokenManager) NewJWT(userID int64) (*model.TokenPair, error) {
+func (_m *TokenManager) NewJWT(userID int64) (*models.TokenPair, error) {
 	ret := _m.Called(userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewJWT")
 	}
 
-	var r0 *model.TokenPair
+	var r0 *models.TokenPair
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64) (*model.TokenPair, error)); ok {
+	if rf, ok := ret.Get(0).(func(int64) (*models.TokenPair, error)); ok {
 		return rf(userID)
 	}
-	if rf, ok := ret.Get(0).(func(int64) *model.TokenPair); ok {
+	if rf, ok := ret.Get(0).(func(int64) *models.TokenPair); ok {
 		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TokenPair)
+			r0 = ret.Get(0).(*models.TokenPair)
 		}
 	}
 
@@ -69,34 +69,34 @@ func (_c *TokenManager_NewJWT_Call) Run(run func(userID int64)) *TokenManager_Ne
 	return _c
 }
 
-func (_c *TokenManager_NewJWT_Call) Return(_a0 *model.TokenPair, _a1 error) *TokenManager_NewJWT_Call {
+func (_c *TokenManager_NewJWT_Call) Return(_a0 *models.TokenPair, _a1 error) *TokenManager_NewJWT_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TokenManager_NewJWT_Call) RunAndReturn(run func(int64) (*model.TokenPair, error)) *TokenManager_NewJWT_Call {
+func (_c *TokenManager_NewJWT_Call) RunAndReturn(run func(int64) (*models.TokenPair, error)) *TokenManager_NewJWT_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ParseRefreshToken provides a mock function with given fields: tokenString
-func (_m *TokenManager) ParseRefreshToken(tokenString string) (*model.TokenClaims, error) {
+func (_m *TokenManager) ParseRefreshToken(tokenString string) (*models.TokenClaims, error) {
 	ret := _m.Called(tokenString)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ParseRefreshToken")
 	}
 
-	var r0 *model.TokenClaims
+	var r0 *models.TokenClaims
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.TokenClaims, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (*models.TokenClaims, error)); ok {
 		return rf(tokenString)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.TokenClaims); ok {
+	if rf, ok := ret.Get(0).(func(string) *models.TokenClaims); ok {
 		r0 = rf(tokenString)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.TokenClaims)
+			r0 = ret.Get(0).(*models.TokenClaims)
 		}
 	}
 
@@ -127,12 +127,12 @@ func (_c *TokenManager_ParseRefreshToken_Call) Run(run func(tokenString string))
 	return _c
 }
 
-func (_c *TokenManager_ParseRefreshToken_Call) Return(_a0 *model.TokenClaims, _a1 error) *TokenManager_ParseRefreshToken_Call {
+func (_c *TokenManager_ParseRefreshToken_Call) Return(_a0 *models.TokenClaims, _a1 error) *TokenManager_ParseRefreshToken_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TokenManager_ParseRefreshToken_Call) RunAndReturn(run func(string) (*model.TokenClaims, error)) *TokenManager_ParseRefreshToken_Call {
+func (_c *TokenManager_ParseRefreshToken_Call) RunAndReturn(run func(string) (*models.TokenClaims, error)) *TokenManager_ParseRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

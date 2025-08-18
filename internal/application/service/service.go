@@ -19,21 +19,26 @@ type Service struct {
 	userClient   auth.UserClient
 	tokenManager auth.TokenManager
 	log          auth.Logger
+	metrics      auth.MetricsProvider
 }
 
-func NewService(repo auth.TokenRepository, tokenManager auth.TokenManager, userClient auth.UserClient, log auth.Logger) *Service {
+func NewService(repo auth.TokenRepository, tokenManager auth.TokenManager, userClient auth.UserClient, log auth.Logger, metrics auth.MetricsProvider) *Service {
 	return &Service{
 		repo:         repo,
 		log:          log,
 		userClient:   userClient,
 		tokenManager: tokenManager,
+		metrics:      metrics,
 	}
 }
 
-func (s *Service) Login(ctx context.Context, login, password string) (*models.TokenPair, error) {
+func (s *Service) Login(ctx context.Context, login, password string) (tokens *models.TokenPair, err error) {
+	defer func() {
+		s.metrics.IncrementAuthOperations("login", err == nil)
+	}()
+
 	isEmail := emailRegex.MatchString(login)
 	var user *models.User
-	var err error
 
 	if isEmail {
 		user, err = s.userClient.GetUserByEmail(ctx, login)
@@ -66,7 +71,7 @@ func (s *Service) Login(ctx context.Context, login, password string) (*models.To
 		return nil, custom_errors.ErrInvalidPassword
 	}
 
-	tokens, err := s.tokenManager.NewJWT(user.ID)
+	tokens, err = s.tokenManager.NewJWT(user.ID)
 	if err != nil {
 		s.log.Error("Failed to create token", slog.String("error", err.Error()), slog.String("login", login))
 		return nil, custom_errors.ErrInternalServiceError
@@ -99,7 +104,10 @@ func (s *Service) Login(ctx context.Context, login, password string) (*models.To
 	return tokens, nil
 }
 
-func (s *Service) Register(ctx context.Context, user *models.User) (*models.TokenPair, error) {
+func (s *Service) Register(ctx context.Context, user *models.User) (tokens *models.TokenPair, err error) {
+	defer func() {
+		s.metrics.IncrementAuthOperations("register", err == nil)
+	}()
 	if user.Username == "" || user.Email == "" || user.Password == "" {
 		s.log.Debug("Invalid input data", slog.String("username", user.Username), slog.String("email", user.Email))
 		return nil, custom_errors.ErrInvalidInput
@@ -143,7 +151,7 @@ func (s *Service) Register(ctx context.Context, user *models.User) (*models.Toke
 		}
 	}
 
-	tokens, err := s.tokenManager.NewJWT(createdUser.ID)
+	tokens, err = s.tokenManager.NewJWT(createdUser.ID)
 	if err != nil {
 		s.log.Error("Failed to create token", slog.String("error", err.Error()), slog.String("username", user.Username))
 		return nil, custom_errors.ErrInternalServiceError
@@ -176,7 +184,11 @@ func (s *Service) Register(ctx context.Context, user *models.User) (*models.Toke
 	return tokens, nil
 }
 
-func (s *Service) Refresh(ctx context.Context, refreshToken string) (*models.TokenPair, error) {
+func (s *Service) Refresh(ctx context.Context, refreshToken string) (tokens *models.TokenPair, err error) {
+	defer func() {
+		s.metrics.IncrementAuthOperations("refresh", err == nil)
+	}()
+
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		if errors.Is(err, custom_errors.ErrInvalidToken) || errors.Is(err, custom_errors.ErrTokenExpired) {
@@ -213,7 +225,7 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*models.Tok
 		}
 	}
 
-	tokens, err := s.tokenManager.NewJWT(user.ID)
+	tokens, err = s.tokenManager.NewJWT(user.ID)
 	if err != nil {
 		s.log.Error("Failed to create token", slog.String("error", err.Error()), slog.Int64("userID", user.ID))
 		return nil, custom_errors.ErrInternalServiceError
@@ -255,7 +267,11 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string) (*models.Tok
 	return tokens, nil
 }
 
-func (s *Service) Logout(ctx context.Context, refreshToken string) error {
+func (s *Service) Logout(ctx context.Context, refreshToken string) (err error) {
+	defer func() {
+		s.metrics.IncrementAuthOperations("logout", err == nil)
+	}()
+
 	claims, err := s.tokenManager.ParseRefreshToken(refreshToken)
 	if err != nil {
 		s.log.Error("Failed to parse refresh token", slog.String("error", err.Error()))
@@ -279,7 +295,10 @@ func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	return nil
 }
 
-func (s *Service) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) error {
+func (s *Service) UpdatePassword(ctx context.Context, id int64, oldPassword, newPassword string) (err error) {
+	defer func() {
+		s.metrics.IncrementAuthOperations("update_password", err == nil)
+	}()
 	if len(newPassword) < 8 {
 		s.log.Debug("Password too short", slog.Int64("userID", id))
 		return custom_errors.ErrInvalidPassword

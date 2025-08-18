@@ -2,25 +2,25 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	token_service "pinstack-auth-service/internal/application/service"
 	"pinstack-auth-service/internal/infrastructure/config"
 	delivery_grpc "pinstack-auth-service/internal/infrastructure/inbound/grpc"
 	auth_grpc "pinstack-auth-service/internal/infrastructure/inbound/grpc/auth"
+	metrics_server "pinstack-auth-service/internal/infrastructure/inbound/metrics"
 	infraLogger "pinstack-auth-service/internal/infrastructure/logger"
 	authManager "pinstack-auth-service/internal/infrastructure/outbound/auth"
 	user "pinstack-auth-service/internal/infrastructure/outbound/client/user"
+
+	prometheus_metrics "pinstack-auth-service/internal/infrastructure/outbound/metrics/prometheus"
 	token_repository "pinstack-auth-service/internal/infrastructure/outbound/repository/postgres"
 	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -65,17 +65,18 @@ func main() {
 
 	userClient := user.NewUserClient(userServiceConn, log)
 	tokenManager := authManager.NewTokenManager(cfg.JWT.Secret, cfg.JWT.Secret, cfg.JWT.AccessExpiresAt, cfg.JWT.RefreshExpiresAt, log)
-	tokenRepo := token_repository.NewTokenRepository(pool, log)
-	tokenService := token_service.NewService(tokenRepo, tokenManager, userClient, log)
+
+	metricsProvider := prometheus_metrics.NewPrometheusMetricsProvider()
+
+	metricsProvider.SetServiceHealth(true)
+
+	tokenRepo := token_repository.NewTokenRepository(pool, log, metricsProvider)
+	tokenService := token_service.NewService(tokenRepo, tokenManager, userClient, log, metricsProvider)
 
 	authGRPCApi := auth_grpc.NewAuthGRPCService(tokenService, log)
-	grpcServer := delivery_grpc.NewServer(authGRPCApi, cfg.GRPCServer.Address, cfg.GRPCServer.Port, log)
+	grpcServer := delivery_grpc.NewServer(authGRPCApi, cfg.GRPCServer.Address, cfg.GRPCServer.Port, log, metricsProvider)
 
-	metricsAddr := fmt.Sprintf("%s:%d", cfg.Prometheus.Address, cfg.Prometheus.Port)
-	metricsServer := &http.Server{
-		Addr:    metricsAddr,
-		Handler: nil,
-	}
+	metricsServer := metrics_server.NewMetricsServer(cfg.Prometheus.Address, cfg.Prometheus.Port, log)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
@@ -90,18 +91,17 @@ func main() {
 		done <- true
 	}()
 
-	http.Handle("/metrics", promhttp.Handler())
-
 	go func() {
-		log.Info("Starting Prometheus metrics server", slog.String("address", metricsAddr))
-		if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error("Prometheus metrics server error", slog.String("error", err.Error()))
+		if err := metricsServer.Run(); err != nil {
+			log.Error("Metrics server error", slog.String("error", err.Error()))
 		}
 		metricsDone <- true
 	}()
 
 	<-quit
 	log.Info("Shutting down servers...")
+
+	metricsProvider.SetServiceHealth(false)
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer shutdownCancel()

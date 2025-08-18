@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	model "pinstack-auth-service/internal/domain/models"
+	models "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -25,7 +25,7 @@ func (_m *TokenRepository) EXPECT() *TokenRepository_Expecter {
 }
 
 // CreateRefreshToken provides a mock function with given fields: ctx, token
-func (_m *TokenRepository) CreateRefreshToken(ctx context.Context, token *model.RefreshToken) error {
+func (_m *TokenRepository) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) error {
 	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
@@ -33,7 +33,7 @@ func (_m *TokenRepository) CreateRefreshToken(ctx context.Context, token *model.
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, *model.RefreshToken) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *models.RefreshToken) error); ok {
 		r0 = rf(ctx, token)
 	} else {
 		r0 = ret.Error(0)
@@ -54,9 +54,9 @@ func (_e *TokenRepository_Expecter) CreateRefreshToken(ctx interface{}, token in
 	return &TokenRepository_CreateRefreshToken_Call{Call: _e.mock.On("CreateRefreshToken", ctx, token)}
 }
 
-func (_c *TokenRepository_CreateRefreshToken_Call) Run(run func(ctx context.Context, token *model.RefreshToken)) *TokenRepository_CreateRefreshToken_Call {
+func (_c *TokenRepository_CreateRefreshToken_Call) Run(run func(ctx context.Context, token *models.RefreshToken)) *TokenRepository_CreateRefreshToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*model.RefreshToken))
+		run(args[0].(context.Context), args[1].(*models.RefreshToken))
 	})
 	return _c
 }
@@ -66,7 +66,7 @@ func (_c *TokenRepository_CreateRefreshToken_Call) Return(_a0 error) *TokenRepos
 	return _c
 }
 
-func (_c *TokenRepository_CreateRefreshToken_Call) RunAndReturn(run func(context.Context, *model.RefreshToken) error) *TokenRepository_CreateRefreshToken_Call {
+func (_c *TokenRepository_CreateRefreshToken_Call) RunAndReturn(run func(context.Context, *models.RefreshToken) error) *TokenRepository_CreateRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -260,23 +260,23 @@ func (_c *TokenRepository_DeleteUserRefreshTokens_Call) RunAndReturn(run func(co
 }
 
 // GetRefreshToken provides a mock function with given fields: ctx, token
-func (_m *TokenRepository) GetRefreshToken(ctx context.Context, token string) (*model.RefreshToken, error) {
+func (_m *TokenRepository) GetRefreshToken(ctx context.Context, token string) (*models.RefreshToken, error) {
 	ret := _m.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRefreshToken")
 	}
 
-	var r0 *model.RefreshToken
+	var r0 *models.RefreshToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.RefreshToken, error)); ok {
 		return rf(ctx, token)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.RefreshToken); ok {
 		r0 = rf(ctx, token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RefreshToken)
+			r0 = ret.Get(0).(*models.RefreshToken)
 		}
 	}
 
@@ -308,34 +308,34 @@ func (_c *TokenRepository_GetRefreshToken_Call) Run(run func(ctx context.Context
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshToken_Call) Return(_a0 *model.RefreshToken, _a1 error) *TokenRepository_GetRefreshToken_Call {
+func (_c *TokenRepository_GetRefreshToken_Call) Return(_a0 *models.RefreshToken, _a1 error) *TokenRepository_GetRefreshToken_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshToken_Call) RunAndReturn(run func(context.Context, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshToken_Call {
+func (_c *TokenRepository_GetRefreshToken_Call) RunAndReturn(run func(context.Context, string) (*models.RefreshToken, error)) *TokenRepository_GetRefreshToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetRefreshTokenByJTI provides a mock function with given fields: ctx, jti
-func (_m *TokenRepository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*model.RefreshToken, error) {
+func (_m *TokenRepository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*models.RefreshToken, error) {
 	ret := _m.Called(ctx, jti)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetRefreshTokenByJTI")
 	}
 
-	var r0 *model.RefreshToken
+	var r0 *models.RefreshToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.RefreshToken, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.RefreshToken, error)); ok {
 		return rf(ctx, jti)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.RefreshToken); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.RefreshToken); ok {
 		r0 = rf(ctx, jti)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.RefreshToken)
+			r0 = ret.Get(0).(*models.RefreshToken)
 		}
 	}
 
@@ -367,12 +367,12 @@ func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Run(run func(ctx context.Co
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Return(_a0 *model.RefreshToken, _a1 error) *TokenRepository_GetRefreshTokenByJTI_Call {
+func (_c *TokenRepository_GetRefreshTokenByJTI_Call) Return(_a0 *models.RefreshToken, _a1 error) *TokenRepository_GetRefreshTokenByJTI_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *TokenRepository_GetRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, string) (*model.RefreshToken, error)) *TokenRepository_GetRefreshTokenByJTI_Call {
+func (_c *TokenRepository_GetRefreshTokenByJTI_Call) RunAndReturn(run func(context.Context, string) (*models.RefreshToken, error)) *TokenRepository_GetRefreshTokenByJTI_Call {
 	_c.Call.Return(run)
 	return _c
 }

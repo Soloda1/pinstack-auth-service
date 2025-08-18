@@ -84,6 +84,9 @@ jobs:
     - name: Install dependencies
       run: go mod download
 
+    - name: Create docker network
+      run: docker network create pinstack-test || true
+
     - name: Start Full Infrastructure for Integration Tests
       working-directory: pinstack-system-tests
       env:
@@ -97,7 +100,8 @@ jobs:
           auth-db-test \
           auth-migrator-test \
           auth-service-test \
-          api-gateway-test
+          api-gateway-test \
+          redis
 
     - name: Wait for services to be ready
       run: |
@@ -106,6 +110,9 @@ jobs:
         # Ждем готовности баз данных
         timeout 60 bash -c 'until docker exec pinstack-user-db-test pg_isready -U postgres; do sleep 2; done'
         timeout 60 bash -c 'until docker exec pinstack-auth-db-test pg_isready -U postgres; do sleep 2; done'
+        
+        # Ждем готовности Redis
+        timeout 60 bash -c 'until docker exec pinstack-redis-test redis-cli ping | grep -q PONG; do echo "⏳ Ожидание Redis..."; sleep 2; done'
         
         # Ждем готовности всех сервисов
         sleep 60
@@ -140,6 +147,8 @@ jobs:
         docker compose -f docker-compose.test.yml logs auth-migrator-test
         echo "=== Логи Auth Database ==="
         docker compose -f docker-compose.test.yml logs auth-db-test
+        echo "=== Логи Redis ==="
+        docker compose -f docker-compose.test.yml logs redis
         echo "=== Логи API Gateway ==="
         docker compose -f docker-compose.test.yml logs api-gateway-test
 

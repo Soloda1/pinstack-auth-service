@@ -16,18 +16,27 @@ import (
 )
 
 type Repository struct {
-	pool *pgxpool.Pool
-	log  ports.Logger
+	pool    *pgxpool.Pool
+	log     ports.Logger
+	metrics ports.MetricsProvider
 }
 
-func NewTokenRepository(pool *pgxpool.Pool, log ports.Logger) *Repository {
+func NewTokenRepository(pool *pgxpool.Pool, log ports.Logger, metrics ports.MetricsProvider) *Repository {
 	return &Repository{
-		pool: pool,
-		log:  log,
+		pool:    pool,
+		log:     log,
+		metrics: metrics,
 	}
 }
 
-func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) error {
+func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.RefreshToken) (err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("create_refresh_token", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("create_refresh_token", err == nil)
+		r.metrics.IncrementTokenOperations("create", err == nil)
+	}()
+
 	args := pgx.NamedArgs{
 		"token":      token.Token,
 		"user_id":    token.UserID,
@@ -39,7 +48,7 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.Refre
 	query := `INSERT INTO refresh_tokens(user_id, token, jti, expires_at, created_at)
 				VALUES (@user_id, @token, @jti, @expires_at, @created_at)`
 
-	_, err := r.pool.Exec(ctx, query, args)
+	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -61,8 +70,15 @@ func (r *Repository) CreateRefreshToken(ctx context.Context, token *models.Refre
 	return nil
 }
 
-func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*models.RefreshToken, error) {
-	var refreshToken models.RefreshToken
+func (r *Repository) GetRefreshToken(ctx context.Context, token string) (refreshToken *models.RefreshToken, err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("get_refresh_token", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("get_refresh_token", err == nil)
+		r.metrics.IncrementTokenOperations("get", err == nil)
+	}()
+
+	var rt models.RefreshToken
 	args := pgx.NamedArgs{
 		"token": token,
 	}
@@ -71,13 +87,13 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*models
 			  FROM refresh_tokens 
 			  WHERE token = @token`
 
-	err := r.pool.QueryRow(ctx, query, args).Scan(
-		&refreshToken.ID,
-		&refreshToken.UserID,
-		&refreshToken.Token,
-		&refreshToken.JTI,
-		&refreshToken.ExpiresAt,
-		&refreshToken.CreatedAt,
+	err = r.pool.QueryRow(ctx, query, args).Scan(
+		&rt.ID,
+		&rt.UserID,
+		&rt.Token,
+		&rt.JTI,
+		&rt.ExpiresAt,
+		&rt.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -90,18 +106,25 @@ func (r *Repository) GetRefreshToken(ctx context.Context, token string) (*models
 		return nil, custom_errors.ErrDatabaseQuery
 	}
 
-	if time.Now().After(refreshToken.ExpiresAt) {
+	if time.Now().After(rt.ExpiresAt) {
 		r.log.Debug("Refresh token expired",
 			slog.String("token", token),
-			slog.Time("expires_at", refreshToken.ExpiresAt))
+			slog.Time("expires_at", rt.ExpiresAt))
 		return nil, custom_errors.ErrTokenExpired
 	}
 
-	return &refreshToken, nil
+	return &rt, nil
 }
 
-func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*models.RefreshToken, error) {
-	var refreshToken models.RefreshToken
+func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (refreshToken *models.RefreshToken, err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("get_refresh_token_by_jti", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("get_refresh_token_by_jti", err == nil)
+		r.metrics.IncrementTokenOperations("get_by_jti", err == nil)
+	}()
+
+	var rt models.RefreshToken
 	args := pgx.NamedArgs{
 		"jti": jti,
 	}
@@ -110,13 +133,13 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*mod
 			  FROM refresh_tokens 
 			  WHERE jti = @jti`
 
-	err := r.pool.QueryRow(ctx, query, args).Scan(
-		&refreshToken.ID,
-		&refreshToken.UserID,
-		&refreshToken.Token,
-		&refreshToken.JTI,
-		&refreshToken.ExpiresAt,
-		&refreshToken.CreatedAt,
+	err = r.pool.QueryRow(ctx, query, args).Scan(
+		&rt.ID,
+		&rt.UserID,
+		&rt.Token,
+		&rt.JTI,
+		&rt.ExpiresAt,
+		&rt.CreatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -129,17 +152,24 @@ func (r *Repository) GetRefreshTokenByJTI(ctx context.Context, jti string) (*mod
 		return nil, custom_errors.ErrDatabaseQuery
 	}
 
-	if time.Now().After(refreshToken.ExpiresAt) {
+	if time.Now().After(rt.ExpiresAt) {
 		r.log.Debug("Refresh token expired",
 			slog.String("jti", jti),
-			slog.Time("expires_at", refreshToken.ExpiresAt))
+			slog.Time("expires_at", rt.ExpiresAt))
 		return nil, custom_errors.ErrTokenExpired
 	}
 
-	return &refreshToken, nil
+	return &rt, nil
 }
 
-func (r *Repository) DeleteRefreshToken(ctx context.Context, token string) error {
+func (r *Repository) DeleteRefreshToken(ctx context.Context, token string) (err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("delete_refresh_token", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("delete_refresh_token", err == nil)
+		r.metrics.IncrementTokenOperations("delete", err == nil)
+	}()
+
 	args := pgx.NamedArgs{
 		"token": token,
 	}
@@ -161,7 +191,14 @@ func (r *Repository) DeleteRefreshToken(ctx context.Context, token string) error
 	return nil
 }
 
-func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) error {
+func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) (err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("delete_refresh_token_by_jti", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("delete_refresh_token_by_jti", err == nil)
+		r.metrics.IncrementTokenOperations("delete_by_jti", err == nil)
+	}()
+
 	args := pgx.NamedArgs{
 		"jti": jti,
 	}
@@ -183,13 +220,20 @@ func (r *Repository) DeleteRefreshTokenByJTI(ctx context.Context, jti string) er
 	return nil
 }
 
-func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, userID int64) error {
+func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, userID int64) (err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("delete_user_refresh_tokens", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("delete_user_refresh_tokens", err == nil)
+		r.metrics.IncrementTokenOperations("delete_user_tokens", err == nil)
+	}()
+
 	args := pgx.NamedArgs{
 		"user_id": userID,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE user_id = @user_id`
-	_, err := r.pool.Exec(ctx, query, args)
+	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete user refresh tokens",
 			slog.String("error", err.Error()),
@@ -200,13 +244,20 @@ func (r *Repository) DeleteUserRefreshTokens(ctx context.Context, userID int64) 
 	return nil
 }
 
-func (r *Repository) DeleteExpiredTokens(ctx context.Context, before time.Time) error {
+func (r *Repository) DeleteExpiredTokens(ctx context.Context, before time.Time) (err error) {
+	start := time.Now()
+	defer func() {
+		r.metrics.RecordDatabaseQueryDuration("delete_expired_tokens", time.Since(start))
+		r.metrics.IncrementDatabaseQueries("delete_expired_tokens", err == nil)
+		r.metrics.IncrementTokenOperations("delete_expired", err == nil)
+	}()
+
 	args := pgx.NamedArgs{
 		"before": before,
 	}
 
 	query := `DELETE FROM refresh_tokens WHERE expires_at < @before`
-	_, err := r.pool.Exec(ctx, query, args)
+	_, err = r.pool.Exec(ctx, query, args)
 	if err != nil {
 		r.log.Error("Failed to delete expired tokens",
 			slog.String("error", err.Error()),
