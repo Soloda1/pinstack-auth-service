@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	prometheus_metrics "pinstack-auth-service/internal/infrastructure/outbound/metrics/prometheus"
 
 	. "pinstack-auth-service/internal/application/service"
 	"pinstack-auth-service/internal/domain/models"
@@ -24,7 +25,8 @@ func setupTest(t *testing.T) (ports.TokenService, *mocks.TokenRepository, *mocks
 	mockTokenManager := mocks.NewTokenManager(t)
 	log := logger.New("test")
 	repo := mocks.NewTokenRepository(t)
-	service := NewService(repo, mockTokenManager, mockUserClient, log)
+	metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+	service := NewService(repo, mockTokenManager, mockUserClient, log, metrics)
 	return service, repo, mockUserClient, mockTokenManager, func() {}
 }
 
@@ -121,7 +123,8 @@ func TestService_Login(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, mockTokenManager, mockUserClient, log, metrics)
 
 		user := &models.User{ID: 1, Email: "test@example.com", Password: hashedPassword}
 		userClient.On("GetUserByEmail", mock.Anything, "test@example.com").Return(user, nil)
@@ -149,7 +152,8 @@ func TestService_Register(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
 		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(user, nil)
@@ -281,7 +285,8 @@ func TestService_Register(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Username: "testuser", Email: "test@example.com", Password: "$2a$10$abcdefghijklmnopqrstuvwxyz"}
 		userClient.On("CreateUser", mock.Anything, mock.AnythingOfType("*models.User")).Return(user, nil)
@@ -310,7 +315,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
@@ -338,7 +344,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
@@ -353,7 +360,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		tokenManager.On("ParseRefreshToken", "invalid-refresh-token").Return(nil, custom_errors.ErrInvalidToken)
 
@@ -368,7 +376,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
@@ -386,7 +395,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(nil, custom_errors.ErrExternalServiceError)
 
@@ -401,7 +411,8 @@ func TestService_Refresh(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
@@ -420,7 +431,8 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		claims := &models.TokenClaims{UserID: 1, JTI: "test-jti", RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour))}}
 		tokenManager.On("ParseRefreshToken", "valid-refresh-token").Return(claims, nil)
@@ -435,7 +447,8 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		tokenManager.On("ParseRefreshToken", "expired-refresh-token").Return(nil, custom_errors.ErrTokenExpired)
 
@@ -448,7 +461,8 @@ func TestService_Logout(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		tokenManager.On("ParseRefreshToken", "invalid-refresh-token").Return(nil, custom_errors.ErrInvalidToken)
 
@@ -467,7 +481,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
@@ -483,7 +498,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		err := service.UpdatePassword(context.Background(), 1, "oldpass", "short")
 		assert.Error(t, err)
@@ -495,7 +511,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		userClient.On("GetUser", mock.Anything, int64(999)).Return(nil, custom_errors.ErrUserNotFound)
 
@@ -509,7 +526,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
@@ -524,7 +542,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(nil, custom_errors.ErrExternalServiceError)
 
@@ -538,7 +557,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
@@ -554,7 +574,8 @@ func TestService_UpdatePassword(t *testing.T) {
 		tokenManager := mocks.NewTokenManager(t)
 		userClient := mocks.NewUserClient(t)
 		log := logger.New("test")
-		service := NewService(repo, tokenManager, userClient, log)
+		metrics := prometheus_metrics.NewPrometheusMetricsProvider()
+		service := NewService(repo, tokenManager, userClient, log, metrics)
 
 		user := &models.User{ID: 1, Password: hashedOldPassword}
 		userClient.On("GetUser", mock.Anything, int64(1)).Return(user, nil)
