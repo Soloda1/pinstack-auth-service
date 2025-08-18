@@ -4,7 +4,7 @@ package mocks
 
 import (
 	context "context"
-	model "pinstack-auth-service/internal/domain/models"
+	models "pinstack-auth-service/internal/domain/models"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -23,27 +23,27 @@ func (_m *UserClient) EXPECT() *UserClient_Expecter {
 }
 
 // CreateUser provides a mock function with given fields: ctx, user
-func (_m *UserClient) CreateUser(ctx context.Context, user *model.User) (*model.User, error) {
+func (_m *UserClient) CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
 	ret := _m.Called(ctx, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
 	}
 
-	var r0 *model.User
+	var r0 *models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *model.User) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) (*models.User, error)); ok {
 		return rf(ctx, user)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *model.User) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *models.User) *models.User); ok {
 		r0 = rf(ctx, user)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *model.User) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *models.User) error); ok {
 		r1 = rf(ctx, user)
 	} else {
 		r1 = ret.Error(1)
@@ -64,41 +64,41 @@ func (_e *UserClient_Expecter) CreateUser(ctx interface{}, user interface{}) *Us
 	return &UserClient_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, user)}
 }
 
-func (_c *UserClient_CreateUser_Call) Run(run func(ctx context.Context, user *model.User)) *UserClient_CreateUser_Call {
+func (_c *UserClient_CreateUser_Call) Run(run func(ctx context.Context, user *models.User)) *UserClient_CreateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*model.User))
+		run(args[0].(context.Context), args[1].(*models.User))
 	})
 	return _c
 }
 
-func (_c *UserClient_CreateUser_Call) Return(_a0 *model.User, _a1 error) *UserClient_CreateUser_Call {
+func (_c *UserClient_CreateUser_Call) Return(_a0 *models.User, _a1 error) *UserClient_CreateUser_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserClient_CreateUser_Call) RunAndReturn(run func(context.Context, *model.User) (*model.User, error)) *UserClient_CreateUser_Call {
+func (_c *UserClient_CreateUser_Call) RunAndReturn(run func(context.Context, *models.User) (*models.User, error)) *UserClient_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetUser provides a mock function with given fields: ctx, id
-func (_m *UserClient) GetUser(ctx context.Context, id int64) (*model.User, error) {
+func (_m *UserClient) GetUser(ctx context.Context, id int64) (*models.User, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUser")
 	}
 
-	var r0 *model.User
+	var r0 *models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, int64) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) (*models.User, error)); ok {
 		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, int64) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, int64) *models.User); ok {
 		r0 = rf(ctx, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
@@ -130,34 +130,34 @@ func (_c *UserClient_GetUser_Call) Run(run func(ctx context.Context, id int64)) 
 	return _c
 }
 
-func (_c *UserClient_GetUser_Call) Return(_a0 *model.User, _a1 error) *UserClient_GetUser_Call {
+func (_c *UserClient_GetUser_Call) Return(_a0 *models.User, _a1 error) *UserClient_GetUser_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserClient_GetUser_Call) RunAndReturn(run func(context.Context, int64) (*model.User, error)) *UserClient_GetUser_Call {
+func (_c *UserClient_GetUser_Call) RunAndReturn(run func(context.Context, int64) (*models.User, error)) *UserClient_GetUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetUserByEmail provides a mock function with given fields: ctx, email
-func (_m *UserClient) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+func (_m *UserClient) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 	ret := _m.Called(ctx, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserByEmail")
 	}
 
-	var r0 *model.User
+	var r0 *models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.User, error)); ok {
 		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
 		r0 = rf(ctx, email)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
@@ -189,34 +189,34 @@ func (_c *UserClient_GetUserByEmail_Call) Run(run func(ctx context.Context, emai
 	return _c
 }
 
-func (_c *UserClient_GetUserByEmail_Call) Return(_a0 *model.User, _a1 error) *UserClient_GetUserByEmail_Call {
+func (_c *UserClient_GetUserByEmail_Call) Return(_a0 *models.User, _a1 error) *UserClient_GetUserByEmail_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserClient_GetUserByEmail_Call) RunAndReturn(run func(context.Context, string) (*model.User, error)) *UserClient_GetUserByEmail_Call {
+func (_c *UserClient_GetUserByEmail_Call) RunAndReturn(run func(context.Context, string) (*models.User, error)) *UserClient_GetUserByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetUserByUsername provides a mock function with given fields: ctx, username
-func (_m *UserClient) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
+func (_m *UserClient) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	ret := _m.Called(ctx, username)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserByUsername")
 	}
 
-	var r0 *model.User
+	var r0 *models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*models.User, error)); ok {
 		return rf(ctx, username)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) *models.User); ok {
 		r0 = rf(ctx, username)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.User)
+			r0 = ret.Get(0).(*models.User)
 		}
 	}
 
@@ -248,12 +248,12 @@ func (_c *UserClient_GetUserByUsername_Call) Run(run func(ctx context.Context, u
 	return _c
 }
 
-func (_c *UserClient_GetUserByUsername_Call) Return(_a0 *model.User, _a1 error) *UserClient_GetUserByUsername_Call {
+func (_c *UserClient_GetUserByUsername_Call) Return(_a0 *models.User, _a1 error) *UserClient_GetUserByUsername_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *UserClient_GetUserByUsername_Call) RunAndReturn(run func(context.Context, string) (*model.User, error)) *UserClient_GetUserByUsername_Call {
+func (_c *UserClient_GetUserByUsername_Call) RunAndReturn(run func(context.Context, string) (*models.User, error)) *UserClient_GetUserByUsername_Call {
 	_c.Call.Return(run)
 	return _c
 }
